@@ -1,5 +1,8 @@
 package ru.locationwatch.mobile_client
 
+import android.Manifest
+import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -35,8 +38,16 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.core.app.ActivityCompat
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationCallback
+import com.google.android.gms.location.LocationRequest
+import com.google.android.gms.location.LocationResult
+import com.google.android.gms.location.LocationServices
+import com.google.android.gms.location.Priority
 import info.mqtt.android.service.MqttAndroidClient
 import org.eclipse.paho.client.mqttv3.IMqttActionListener
 import org.eclipse.paho.client.mqttv3.IMqttToken
@@ -51,12 +62,22 @@ class MainActivity : ComponentActivity() {
 
     private lateinit var appConfig: AppConfig
 
+    private val PERMISSIONS_FINE_LOCATIONS = 99
+
     private var serverURI = ""
     private var userId = ""
     private var userPassword = ""
     private var mqttTopic = "events"
 
     private val mHandler = Handler(Looper.getMainLooper())
+
+    private lateinit var fusedLocationProviderClient: FusedLocationProviderClient
+    private lateinit var locationRequest: LocationRequest
+    private lateinit var locationCallback : LocationCallback
+    private var requestingLocationUpdates = true
+
+    private val latitude = mutableStateOf("")
+    private val longitude = mutableStateOf("")
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -65,6 +86,21 @@ class MainActivity : ComponentActivity() {
         serverURI = appConfig.serverURI
         userId = appConfig.userId
         userPassword = appConfig.userPassword
+
+        locationRequest = LocationRequest.Builder(
+            Priority.PRIORITY_HIGH_ACCURACY,
+            30 * 1000
+        ).setMinUpdateIntervalMillis(5 * 1000)
+            .build()
+
+        locationCallback = object : LocationCallback() {
+            override fun onLocationResult(p0: LocationResult) {
+                for (location in p0.locations){
+                    latitude.value = location.latitude.toString()
+                    longitude.value = location.longitude.toString()
+                }
+            }
+        }
 
         enableEdgeToEdge()
         setContent {
@@ -76,8 +112,20 @@ class MainActivity : ComponentActivity() {
                     val statusText = remember {
                         mutableStateOf("Status")
                     }
+
+//                    val latitude = remember {
+//                        mutableStateOf("")
+//                    }
+//
+//                    val longitude = remember {
+//                        mutableStateOf("")
+//                    }
+
+                    updateGPS()
                     MainScreen(
                         statusText = statusText,
+                        latitude = latitude,
+                        longitude = longitude,
                         startPublish = { startPublish(statusText) }
                     )
                 }
@@ -85,28 +133,113 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    fun startPublish(
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray,
+        deviceId: Int
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults, deviceId)
+
+        when (requestCode) {
+            PERMISSIONS_FINE_LOCATIONS -> {
+                if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    //updateGPS()
+                } else {
+                    Toast.makeText(
+                        this@MainActivity,
+                        "Permissions are required",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            }
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        if (requestingLocationUpdates) {
+            startLocationUpdates()
+        }
+    }
+
+    private fun startLocationUpdates() {
+        if (ActivityCompat.checkSelfPermission(
+                this,
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
+                this,
+                Manifest.permission.ACCESS_COARSE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            return
+        }
+        fusedLocationProviderClient.requestLocationUpdates(
+            locationRequest,
+            locationCallback,
+            Looper.getMainLooper()
+        )
+    }
+
+    override fun onPause() {
+        super.onPause()
+        stopLocationUpdates()
+    }
+
+    private fun stopLocationUpdates() {
+        fusedLocationProviderClient.removeLocationUpdates(locationCallback)
+    }
+
+    private fun updateGPS() {
+        fusedLocationProviderClient =
+            LocationServices.getFusedLocationProviderClient(this@MainActivity)
+        if (ActivityCompat.checkSelfPermission(
+                this, Manifest.permission.ACCESS_FINE_LOCATION
+            ) == PackageManager.PERMISSION_GRANTED
+        ) {
+            fusedLocationProviderClient.lastLocation.addOnSuccessListener {
+                latitude.value = it.latitude.toString()
+                longitude.value = it.longitude.toString()
+            }
+        } else {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                requestPermissions(
+                    arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
+                    PERMISSIONS_FINE_LOCATIONS
+                )
+            }
+        }
+    }
+
+    private fun startPublish(
         statusText: MutableState<String>
-    )  {
+    ) {
         val clientId = MqttClient.generateClientId()
         val client = MqttAndroidClient(this.applicationContext, serverURI, clientId)
         val options = MqttConnectOptions()
         try {
             options.userName = userId
             options.password = userPassword.toCharArray()
-            client.connect(options, null, object: IMqttActionListener {
+            client.connect(options, null, object : IMqttActionListener {
                 override fun onSuccess(asyncActionToken: IMqttToken?) {
                     mHandler.post {
-                        statusText.value += ": Connected"
+                        statusText.value = "Status: Connected"
                     }
 
                     publish(client)
 
-                    val mRunnableTask = object: Runnable {
-                         override fun run() {
-                             publish(client)
-                             mHandler.postDelayed(this, 5000)
-                         }
+                    val mRunnableTask = object : Runnable {
+                        override fun run() {
+                            publish(client)
+                            mHandler.postDelayed(this, 5000)
+                        }
                     }
 
                     mHandler.postDelayed(mRunnableTask, 5000)
@@ -126,7 +259,7 @@ class MainActivity : ComponentActivity() {
 
     fun publish(client: MqttAndroidClient) {
         val publishTopic = "\$devices/$userId/$mqttTopic"
-        val message = "Hello";
+        val message = "latitude: ${latitude.value}, longitude: ${longitude.value}"
         try {
             client.publish(publishTopic, MqttMessage(message.toByteArray()))
         } catch (e: MqttException) {
@@ -139,6 +272,8 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun MainScreen(
     statusText: MutableState<String>,
+    latitude: MutableState<String>,
+    longitude: MutableState<String>,
     startPublish: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -172,9 +307,28 @@ fun MainScreen(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.SpaceEvenly
             ) {
-                Text("One")
-                Text("Two")
-                Text("Three")
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                ) {
+                    Text(
+                        text = "Latitude: "
+                    )
+                    Text(
+                        text = latitude.value
+                    )
+                }
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                ) {
+                    Text(
+                        text = "Longitude: "
+                    )
+                    Text(
+                        text = longitude.value
+                    )
+                }
             }
             Row(
                 modifier = Modifier
@@ -214,8 +368,13 @@ fun MainPreview() {
         val statusText = remember {
             mutableStateOf("Status")
         }
+        val latitude = remember {
+            mutableStateOf("100.0")
+        }
         MainScreen(
             statusText = statusText,
+            latitude = latitude,
+            longitude = latitude,
             startPublish = {}
         )
     }
