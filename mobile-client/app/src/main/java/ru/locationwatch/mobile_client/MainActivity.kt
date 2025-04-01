@@ -78,6 +78,7 @@ class MainActivity : ComponentActivity() {
 
     private val latitude = mutableStateOf("")
     private val longitude = mutableStateOf("")
+    private val speed = mutableStateOf("")
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -95,9 +96,10 @@ class MainActivity : ComponentActivity() {
 
         locationCallback = object : LocationCallback() {
             override fun onLocationResult(p0: LocationResult) {
-                for (location in p0.locations){
+                for (location in p0.locations) {
                     latitude.value = location.latitude.toString()
                     longitude.value = location.longitude.toString()
+                    speed.value = location.speed.toString()
                 }
             }
         }
@@ -126,6 +128,7 @@ class MainActivity : ComponentActivity() {
                         statusText = statusText,
                         latitude = latitude,
                         longitude = longitude,
+                        speed = speed,
                         startPublish = { startPublish(statusText) }
                     )
                 }
@@ -207,6 +210,7 @@ class MainActivity : ComponentActivity() {
             fusedLocationProviderClient.lastLocation.addOnSuccessListener {
                 latitude.value = it.latitude.toString()
                 longitude.value = it.longitude.toString()
+                speed.value = it.speed.toString()
             }
         } else {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -259,7 +263,7 @@ class MainActivity : ComponentActivity() {
 
     fun publish(client: MqttAndroidClient) {
         val publishTopic = "\$devices/$userId/$mqttTopic"
-        val message = "latitude: ${latitude.value}, longitude: ${longitude.value}"
+        val message = "latitude: ${latitude.value}, longitude: ${longitude.value}, speed: ${speed.value}"
         try {
             client.publish(publishTopic, MqttMessage(message.toByteArray()))
         } catch (e: MqttException) {
@@ -274,6 +278,7 @@ fun MainScreen(
     statusText: MutableState<String>,
     latitude: MutableState<String>,
     longitude: MutableState<String>,
+    speed: MutableState<String>,
     startPublish: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -329,6 +334,17 @@ fun MainScreen(
                         text = longitude.value
                     )
                 }
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                ) {
+                    Text(
+                        text = "Speed: "
+                    )
+                    Text(
+                        text = speed.value
+                    )
+                }
             }
             Row(
                 modifier = Modifier
@@ -375,6 +391,7 @@ fun MainPreview() {
             statusText = statusText,
             latitude = latitude,
             longitude = latitude,
+            speed = latitude,
             startPublish = {}
         )
     }
