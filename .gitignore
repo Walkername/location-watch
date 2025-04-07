@@ -39,6 +39,7 @@ build/
 !**/src/test/**/build/
 
 ### VS Code ###
+<<<<<<< HEAD
 .vscode/
 
 mobile-client/app/src/main/assets/
