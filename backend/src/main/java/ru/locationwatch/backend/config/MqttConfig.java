@@ -46,14 +46,14 @@ public class MqttConfig {
         DefaultMqttPahoClientFactory factory = new DefaultMqttPahoClientFactory();
         MqttConnectOptions options = new MqttConnectOptions();
 
-        // URL брокера с SSL
+        // URL broker with SSL
         options.setServerURIs(new String[] { brokerUrl });
 
-        // Настройка SSL контекста
+        // SSL context setting up
         SSLContext sslContext = SSLContext.getInstance("TLS");
         sslContext.init(
-                null, // KeyManager (не требуется для односторонней аутентификации)
-                createTrustManager(), // TrustManager с сертификатом сервера
+                null, // KeyManager (not require for one-way authentication)
+                createTrustManager(), // TrustManager with server certificate
                 new SecureRandom()
         );
 
@@ -70,7 +70,7 @@ public class MqttConfig {
 		return new DirectChannel();
 	}
 
-	// Настройка адаптера для входящих сообщений
+    // Adapter setting up for coming messages
     @Bean
     public MessageProducer inboundAdapter() throws Exception {
         MqttPahoMessageDrivenChannelAdapter adapter =
@@ -86,18 +86,18 @@ public class MqttConfig {
     }
 
     private TrustManager[] createTrustManager() throws Exception {
-        // Загрузка сертификата из ресурсов
+        // Certificate loading from resources
         CertificateFactory cf = CertificateFactory.getInstance("X.509");
         Certificate ca = cf.generateCertificate(
                 new ClassPathResource("certs/rootca.crt").getInputStream()
         );
 
-        // Создание KeyStore
+        // KeyStore creating
         KeyStore keyStore = KeyStore.getInstance(KeyStore.getDefaultType());
         keyStore.load(null, null);
         keyStore.setCertificateEntry("broker", ca);
 
-        // Инициализация TrustManagerFactory
+        // TrustManagerFactory initialization
         TrustManagerFactory tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
         tmf.init(keyStore);
 
