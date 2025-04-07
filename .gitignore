@@ -40,3 +40,6 @@ build/
 
 ### VS Code ###
 .vscode/
+
+mobile-client/app/src/main/assets/
+backend/src/main/resources/certs/
