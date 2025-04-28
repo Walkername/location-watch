@@ -19,7 +19,6 @@ import ru.locationwatch.backend.services.TokenService;
 import java.io.IOException;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
-import java.util.Collections;
 import java.util.LinkedHashMap;
 
 @Component
@@ -53,11 +52,9 @@ public class JWTFilter extends OncePerRequestFilter {
                 return;
             } else {
                 try {
-                    DecodedJWT jwt = tokenService.validateToken(token);
-//                    String role = jwt.getClaim("role").asString();
+                    DecodedJWT jwt = tokenService.validateAccessToken(token);
                     String username = jwt.getClaim("username").asString();
                     UserDetails userDetails = personDetailsService.loadUserByUsername(username);
-                    System.out.println(userDetails.getAuthorities());
 
                     UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                             userDetails,
@@ -96,7 +93,7 @@ public class JWTFilter extends OncePerRequestFilter {
         String jsonResponse = objectMapper.writeValueAsString(responseMap);
 
         response.getWriter().write(jsonResponse);
-        //response.getWriter().close();
+        response.getWriter().close();
     }
 
 }

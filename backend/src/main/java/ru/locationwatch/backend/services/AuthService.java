@@ -12,6 +12,7 @@ import ru.locationwatch.backend.util.RegistrationException;
 import java.util.Optional;
 
 @Service
+@Transactional(readOnly = true)
 public class AuthService {
 
     private final PeopleRepository peopleRepository;
@@ -34,7 +35,7 @@ public class AuthService {
 
         person.setPassword(passwordEncoder.encode(person.getPassword()));
         person.setRole("ROLE_USER");
-        System.out.println(person);
+
         peopleRepository.save(person);
     }
 
