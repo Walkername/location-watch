@@ -9,6 +9,7 @@ import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.*;
 import ru.locationwatch.backend.dto.AuthDTO;
+import ru.locationwatch.backend.dto.JWTResponse;
 import ru.locationwatch.backend.models.Person;
 import ru.locationwatch.backend.services.AuthService;
 import ru.locationwatch.backend.services.TokenService;
@@ -17,7 +18,6 @@ import ru.locationwatch.backend.util.PersonValidator;
 import ru.locationwatch.backend.util.RegistrationException;
 
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/auth")
@@ -46,9 +46,8 @@ public class AuthController {
             BindingResult bindingResult
     ) {
         Person person = convertToPerson(authDTO);
-        if (bindingResult.hasErrors()) {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        }
+        personValidator.validate(person, bindingResult);
+        validatePerson(bindingResult);
 
         authService.register(person);
 
@@ -56,18 +55,24 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public Map<String, String> login(
+    public JWTResponse login(
             @RequestBody @Valid AuthDTO authDTO,
             BindingResult bindingResult
     ) {
         Person person = convertToPerson(authDTO);
-        personValidator.validate(person, bindingResult);
+        //personValidator.validate(person, bindingResult);
         validatePerson(bindingResult);
 
         authService.check(person);
-        String token = tokenService.generateToken(person.getUsername());
-        return Map.of("token", token);
+
+        String accessToken = tokenService.generateAccessToken(person);
+        String refreshToken = tokenService.generateRefreshToken(person);
+        return new JWTResponse(accessToken, refreshToken);
     }
+
+    // TODO: endpoint to get new access token
+
+    // TODO: endpoint to get new refresh token
 
     public void validatePerson(BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
