@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.kotlin.serialization)
 }
 
 android {
@@ -55,6 +56,12 @@ dependencies {
 
     val playServicesLocation = "21.3.0"
     implementation("com.google.android.gms:play-services-location:$playServicesLocation")
+
+    val navVersion = "2.8.9"
+    implementation("androidx.navigation:navigation-compose:$navVersion")
+
+    val serialJsonVersion = "1.8.1";
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:$serialJsonVersion")
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
