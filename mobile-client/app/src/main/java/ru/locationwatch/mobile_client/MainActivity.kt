@@ -42,6 +42,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationRequest
@@ -49,6 +52,7 @@ import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
 import info.mqtt.android.service.MqttAndroidClient
+import kotlinx.serialization.Serializable
 import org.eclipse.paho.client.mqttv3.IMqttActionListener
 import org.eclipse.paho.client.mqttv3.IMqttToken
 import org.eclipse.paho.client.mqttv3.MqttClient
@@ -111,26 +115,33 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
+                    val navController = rememberNavController()
+
                     val statusText = remember {
                         mutableStateOf("Status")
                     }
 
-//                    val latitude = remember {
-//                        mutableStateOf("")
-//                    }
-//
-//                    val longitude = remember {
-//                        mutableStateOf("")
-//                    }
-
                     updateGPS()
-                    MainScreen(
-                        statusText = statusText,
-                        latitude = latitude,
-                        longitude = longitude,
-                        speed = speed,
-                        startPublish = { startPublish(statusText) }
-                    )
+
+                    NavHost(
+                        navController = navController,
+                        startDestination = AuthorizationScreen
+                    ) {
+                        composable<MainScreen> {
+                            MainScreen(
+                                statusText = statusText,
+                                latitude = latitude,
+                                longitude = longitude,
+                                speed = speed,
+                                startPublish = { startPublish(statusText) }
+                            )
+                        }
+                        composable<AuthorizationScreen> {
+                            AuthorizationScreen(
+                                navigateToMain = { navController.navigate(MainScreen) }
+                            )
+                        }
+                    }
                 }
             }
         }
