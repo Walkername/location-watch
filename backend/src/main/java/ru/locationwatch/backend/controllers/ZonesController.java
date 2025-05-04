@@ -15,6 +15,7 @@ import ru.locationwatch.backend.util.ZoneErrorResponse;
 import ru.locationwatch.backend.util.ZoneNotCreatedException;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/zones")
@@ -42,6 +43,13 @@ public class ZonesController {
 
         zonesService.save(zone);
         return ResponseEntity.ok(HttpStatus.OK);
+    }
+
+    @GetMapping()
+    public List<ZoneDTO> getZones() {
+        // Currently ZoneDTO is request from frontend, but it's also suitable to send it to frontend
+        // But it's better to create another dto for response to frontend
+        return zonesService.findAll().stream().map(this::convertToZoneDTO).collect(Collectors.toList());
     }
 
     public void validateZone(BindingResult bindingResult) {
@@ -73,4 +81,7 @@ public class ZonesController {
         return modelMapper.map(zoneDTO, Zone.class);
     }
 
+    private ZoneDTO convertToZoneDTO(Zone zone) {
+        return modelMapper.map(zone, ZoneDTO.class);
+    }
 }
