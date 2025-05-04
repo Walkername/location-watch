@@ -60,7 +60,6 @@ public class AuthController {
             BindingResult bindingResult
     ) {
         Person person = convertToPerson(authDTO);
-        //personValidator.validate(person, bindingResult);
         validatePerson(bindingResult);
 
         authService.check(person);
