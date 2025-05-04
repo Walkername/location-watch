@@ -2,6 +2,9 @@ package ru.locationwatch.backend.models;
 
 public class Coordinate {
 
+    // This object is used by zone to store coordinates x and y
+    // Need I to validate it, or not?
+
     private double x;
 
     private double y;

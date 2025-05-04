@@ -1,6 +1,8 @@
 package ru.locationwatch.backend.models;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.Size;
 import org.hibernate.annotations.ColumnTransformer;
 import ru.locationwatch.backend.util.PolygonConverter;
 
@@ -14,6 +16,8 @@ public class Zone {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
+    @NotEmpty(message = "Type name should no be empty")
+    @Size(max = 100, message = "Type should be less than 100")
     @Column(name = "type_name")
     private String typeName;
 
