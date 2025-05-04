@@ -21,6 +21,10 @@ public class ZonesService {
         this.zonesRepository = zonesRepository;
     }
 
+    public List<Zone> findAll() {
+        return zonesRepository.findAll();
+    }
+
     @Transactional
     public void save(Zone zone) {
         zonesRepository.save(zone);
