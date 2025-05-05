@@ -1,0 +1,24 @@
+
+h1 {
+    display: flex; /* Use Flexbox to center content */
+    justify-content: center; /* Center horizontally */
+}
+
+.page-content-container {
+    display: flex; /* Use Flexbox to center content */
+    justify-content: center; /* Center horizontally */
+    align-items: center; /* Center vertically */
+}
+
+.page-content {
+    display: flex;
+    justify-content: space-between;
+    background-color: #f0f0f0;
+    max-width: 500px;
+    min-width: 500px;
+    padding-left: 250px;
+    padding-right: 250px;
+    padding-top: 10px;
+    padding-bottom: 40px;
+}
+
