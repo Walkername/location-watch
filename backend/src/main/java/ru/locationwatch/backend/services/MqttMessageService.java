@@ -24,7 +24,6 @@ public class MqttMessageService {
 
     @ServiceActivator(inputChannel = "mqttInputChannel")
     public void handleMessage(Message<?> message) {
-        System.out.println(message.getPayload());
         String payload = message.getPayload().toString();
         String[] split = payload.split(",");
         double latitude = Double.parseDouble(split[0].split(":")[1]);
@@ -32,7 +31,11 @@ public class MqttMessageService {
         //double speed = Double.parseDouble(split[2].split(":")[1]);
         Coordinate point = new Coordinate(latitude, longitude);
 
+        // This method is ineffective
+        // Send request to DB each gps data
+        // TODO: maybe add cache or other ways to reduce the load on the DB
         List<Zone> zones = zonesService.findAll();
+
         int intersections = 0;
         for (Zone zone : zones) {
             List<Coordinate> area = zone.getArea();
@@ -48,7 +51,9 @@ public class MqttMessageService {
             }
         }
 
-        System.out.println("Location is in restricted zone: " + (intersections % 2 == 1));
+        // Location is in restricted zone:
+        // intersections % 2 == 1 => odd -> true; even -> false.
+
         // Send notification that user is in restricted zone
         // TODO: send only to specific user
         if (intersections % 2 == 1) {
