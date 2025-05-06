@@ -1,7 +1,7 @@
 import { Icon } from "leaflet";
 import { useEffect, useState } from "react";
-import { MapContainer, Marker, Polyline, Popup, TileLayer, useMapEvents } from "react-leaflet";
-import { getZones } from "../../api/zones-api";
+import { MapContainer, Marker, Polygon, Polyline, Popup, TileLayer, useMapEvents } from "react-leaflet";
+import { createZone, getZones } from "../../api/zones-api";
 
 
 function MainPage() {
@@ -14,7 +14,7 @@ function MainPage() {
 
     const handleMapClick = (latlng) => {
         setPositions([...positions, [latlng.lat, latlng.lng]]);
-        console.log(latlng.lat, latlng.lng);
+        console.log(positions);
     };
 
     // Component to handle map click events
@@ -46,6 +46,44 @@ function MainPage() {
         })
     }, [])
 
+    const [typeName, setTypeName] = useState("NO_SPEED")
+
+    const handleTypeChange = (e) => {
+        setTypeName(e.target.value.toUpperCase());
+    };
+
+    const handleCreateZone = (e) => {
+        e.preventDefault(); // Prevent default form submission
+        
+        // Validate there are enough points to form a polygon
+        if (positions.length < 3) {
+            alert("You need at least 3 points to create a zone");
+            return;
+        }
+
+        // Prepare the form data according to required structure
+        const formData = {
+            typeName: typeName,
+            area: positions.map(position => ({
+                x: position[0],  // Latitude
+                y: position[1]   // Longitude
+            }))
+        };
+
+        createZone(formData);
+    }
+
+    //
+
+    // Add this function to get color based on zone type
+    const getZoneColor = (type) => {
+        switch(type) {
+            case 'NO_SPEED': return 'red';
+            case 'LESS_SPEED': return 'blue';
+            default: return 'green';
+        }
+    };
+
     return (
         <>
             <h1>Admin Interface</h1>
@@ -70,13 +108,46 @@ function MainPage() {
                         {positions.length >= 2 && (
                             <Polyline positions={polylinePositions} color="blue" />
                         )}
+
+                        {/* Display existing zones as polygons */}
+                        {zones.map((zone, index) => (
+                            <Polygon 
+                                key={index}
+                                positions={zone.area.map(point => [point.x, point.y])}
+                                color={getZoneColor(zone.typeName)}
+                            >
+                                <Popup>
+                                    <div>
+                                        <h3>{zone.typeName} Zone</h3>
+                                        <p>Points: {zone.area.length}</p>
+                                    </div>
+                                </Popup>
+                            </Polygon>
+                        ))}
                     </MapContainer>
 
                     <div>
-                        <form method="POST">
+                        <form method="POST" onSubmit={handleCreateZone}>
                             <label>Type name of zone:</label>
                             <br></br>
-                            <input type="text" />
+                            <input
+                                type="radio"
+                                id="no_speed"
+                                value="NO_SPEED"
+                                name="typeName"
+                                checked={typeName === "NO_SPEED"}
+                                onChange={handleTypeChange}
+                            />
+                            <label htmlFor="no_speed">NO SPEED</label>
+                            <br></br>
+                            <input
+                                type="radio"
+                                id="less_speed"
+                                value="LESS_SPEED"
+                                name="typeName"
+                                onChange={handleTypeChange}
+                            />
+                            <label htmlFor="less_speed">LESS SPEED</label>
                             <input type="submit" value="Create" />
                         </form>
 

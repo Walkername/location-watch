@@ -6,3 +6,17 @@ export const getZones = async () => {
     }
     return response.json();
 }
+
+export const createZone = async (zoneData) => {
+    const response = await fetch(`http://localhost:8080/zones/add`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify(zoneData)
+    });
+    if (!response.ok) {
+        throw new Error('Failed to add new zone');
+    }
+    return response.json();
+}
