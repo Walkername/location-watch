@@ -1,4 +1,4 @@
-import { Icon } from "leaflet";
+import { DivIcon, Icon } from "leaflet";
 import { useEffect, useState } from "react";
 import { MapContainer, Marker, Polygon, Polyline, Popup, TileLayer, useMapEvents } from "react-leaflet";
 import { createZone, getZones } from "../../api/zones-api";
@@ -32,18 +32,38 @@ function MainPage() {
         ? [...positions, positions[0]]
         : positions;
 
-    const customIcon = new Icon({
-        // iconUrl: "https://cdn-icons-png.flaticon.com/512/447/447031.png",
-        iconUrl: require("../../icons/pngegg.png"),
-        iconSize: [72, 60] // size of the icon
-    });
+    const createNumberedIcon = (number) => {
+        return new DivIcon({
+            className: 'custom-marker',
+            html: `
+                    <div style="
+                        background-color: red;
+                        border-radius: 50%;
+                        width: 24px;
+                        height: 24px;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        color: white;
+                        font-weight: bold;
+                        border: 2px solid white;
+                    ">
+                        ${number}
+                    </div>
+                `,
+            iconSize: [24, 24] // size of the div element
+        });
+    };
 
     // ZONES
 
     useEffect(() => {
         getZones().then((response) => {
-            setZones(response)
+            setZones(response);
         })
+            .catch((error) => {
+                alert("Connection error");
+            })
     }, [])
 
     const [typeName, setTypeName] = useState("NO_SPEED")
@@ -54,7 +74,7 @@ function MainPage() {
 
     const handleCreateZone = (e) => {
         e.preventDefault(); // Prevent default form submission
-        
+
         // Validate there are enough points to form a polygon
         if (positions.length < 3) {
             alert("You need at least 3 points to create a zone");
@@ -70,19 +90,42 @@ function MainPage() {
             }))
         };
 
-        createZone(formData);
-    }
+        // Call API to create zone
+        createZone(formData).then(() => {
+            getZones().then((response) => {
+                setZones(response);
+            });
+        })
+            .catch((error) => {
+                alert("Error to create zone!")
+            });
 
-    //
+        // Clear markers after successful creation
+        setPositions([]);
+    }
 
     // Add this function to get color based on zone type
     const getZoneColor = (type) => {
-        switch(type) {
+        switch (type) {
             case 'NO_SPEED': return 'red';
             case 'LESS_SPEED': return 'blue';
             default: return 'green';
         }
     };
+
+    // Listener to remove last marker
+
+    useEffect(() => {
+        const handleKeyPress = (e) => {
+            if (e.ctrlKey && e.key === 'z') {
+                e.preventDefault();
+                setPositions(prev => prev.slice(0, -1));
+            }
+        };
+
+        window.addEventListener('keydown', handleKeyPress);
+        return () => window.removeEventListener('keydown', handleKeyPress);
+    }, []);
 
     return (
         <>
@@ -99,19 +142,42 @@ function MainPage() {
 
                         {/* Render markers */}
                         {positions.map((position, index) => (
-                            <Marker key={index} position={position} icon={customIcon}>
-                                <Popup />
+                            <Marker
+                                key={index}
+                                position={position}
+                                icon={createNumberedIcon(index + 1)}
+                            >
+                                <Popup>
+                                    Point {index + 1}<br />
+                                    Lat: {position[0].toFixed(6)}<br />
+                                    Lng: {position[1].toFixed(6)}
+                                </Popup>
                             </Marker>
                         ))}
 
                         {/* Render connecting lines */}
                         {positions.length >= 2 && (
-                            <Polyline positions={polylinePositions} color="blue" />
+                            <Polyline
+                                key={`polyline-${typeName}`}
+                                positions={polylinePositions}
+                                color={getZoneColor(typeName)}
+                            />
+                        )}
+
+                        {/* Render semi-transparent polygon when 3+ markers exist */}
+                        {positions.length >= 3 && (
+                            <Polygon
+                                positions={polylinePositions}
+                                pathOptions={{
+                                    fillColor: getZoneColor(typeName),
+                                    color: 'transparent'
+                                }}
+                            />
                         )}
 
                         {/* Display existing zones as polygons */}
                         {zones.map((zone, index) => (
-                            <Polygon 
+                            <Polygon
                                 key={index}
                                 positions={zone.area.map(point => [point.x, point.y])}
                                 color={getZoneColor(zone.typeName)}
@@ -127,6 +193,12 @@ function MainPage() {
                     </MapContainer>
 
                     <div>
+                        <div>You can use "Ctrl + Z" shortcut to undo last marker</div>
+
+                        <button
+                            onClick={() => setPositions([])}
+                        >Clear</button>
+
                         <form method="POST" onSubmit={handleCreateZone}>
                             <label>Type name of zone:</label>
                             <br></br>

@@ -14,15 +14,16 @@ h1 {
     display: flex;
     justify-content: space-between;
     background-color: #f0f0f0;
-    width: 1200px;
-    padding-left: 250px;
-    padding-right: 250px;
+    width: 1400px;
+    padding-left: 200px;
+    padding-right: 200px;
     padding-top: 10px;
     padding-bottom: 40px;
+    gap: 20px;
 }
 
 .leaflet-container {
-    height: 90vh;
+    height: 80vh;
     width: 90%;
     border-radius: 2rem;
 }
