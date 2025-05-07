@@ -29,4 +29,9 @@ public class ZonesService {
     public void save(Zone zone) {
         zonesRepository.save(zone);
     }
+
+    @Transactional
+    public void delete(int id) {
+        zonesRepository.deleteById(id);
+    }
 }

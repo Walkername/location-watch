@@ -46,11 +46,23 @@ public class ZonesController {
     }
 
     @GetMapping()
-    public List<ZoneDTO> getZones() {
+    public List<Zone> getZones() {
         // Currently ZoneDTO is request from frontend, but it's also suitable to send it to frontend
         // But it's better to create another dto for response to frontend
-        return zonesService.findAll().stream().map(this::convertToZoneDTO).collect(Collectors.toList());
+        //return zonesService.findAll().stream().map(this::convertToZoneDTO).collect(Collectors.toList());
+        // In order to delete zones, I need to know its id
+        // So just returning zone with all its information
+        return zonesService.findAll();
     }
+
+    @DeleteMapping("/delete/{id}")
+    public ResponseEntity<HttpStatus> deleteZone(
+            @PathVariable("id") int id
+    ) {
+        zonesService.delete(id);
+        return ResponseEntity.ok(HttpStatus.OK);
+    }
+
 
     public void validateZone(BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
