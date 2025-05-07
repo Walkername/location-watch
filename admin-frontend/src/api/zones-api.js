@@ -20,3 +20,13 @@ export const createZone = async (zoneData) => {
     }
     return response.json();
 }
+
+export const deleteZone = async (id) => {
+    const response = await fetch(`http://localhost:8080/zones/delete/${id}`, {
+        method: "DELETE"
+    });
+    if (!response.ok) {
+        throw new Error('Failed to delete the zone');
+    }
+    return response.json();
+}

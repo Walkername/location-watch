@@ -1,7 +1,7 @@
 import { DivIcon, Icon } from "leaflet";
 import { useEffect, useState } from "react";
 import { MapContainer, Marker, Polygon, Polyline, Popup, TileLayer, useMapEvents } from "react-leaflet";
-import { createZone, getZones } from "../../api/zones-api";
+import { createZone, deleteZone, getZones } from "../../api/zones-api";
 
 
 function MainPage() {
@@ -127,6 +127,20 @@ function MainPage() {
         return () => window.removeEventListener('keydown', handleKeyPress);
     }, []);
 
+    // Handle to delete zone
+
+    const handleDelete = (id) => {
+        deleteZone(id)
+            .then(() => {
+                getZones().then((response) => {
+                    setZones(response);
+                })
+            })
+            .catch((error) => {
+                alert("Error to delete the zone!")
+            });
+    }
+
     return (
         <>
             <h1>Admin Interface</h1>
@@ -186,6 +200,9 @@ function MainPage() {
                                     <div>
                                         <h3>{zone.typeName} Zone</h3>
                                         <p>Points: {zone.area.length}</p>
+                                        <button
+                                            onClick={() => handleDelete(zone.id)}
+                                        >Delete</button>
                                     </div>
                                 </Popup>
                             </Polygon>
@@ -220,6 +237,7 @@ function MainPage() {
                                 onChange={handleTypeChange}
                             />
                             <label htmlFor="less_speed">LESS SPEED</label>
+                            <br></br>
                             <input type="submit" value="Create" />
                         </form>
 
