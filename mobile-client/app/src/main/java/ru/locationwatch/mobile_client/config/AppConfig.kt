@@ -1,4 +1,4 @@
-package ru.locationwatch.mobile_client
+package ru.locationwatch.mobile_client.config
 
 import android.content.Context
 import java.util.Properties

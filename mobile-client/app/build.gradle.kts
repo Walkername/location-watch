@@ -44,6 +44,8 @@ dependencies {
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
+    implementation(libs.androidx.lifecycle.runtime.compose)
     implementation(libs.androidx.activity.compose)
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.ui)
@@ -51,17 +53,12 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
 
-    val mqttVersion = "4.3";
-    implementation("com.github.hannesa2:paho.mqtt.android:$mqttVersion")
-
-    val playServicesLocation = "21.3.0"
-    implementation("com.google.android.gms:play-services-location:$playServicesLocation")
-
-    val navVersion = "2.8.9"
-    implementation("androidx.navigation:navigation-compose:$navVersion")
-
-    val serialJsonVersion = "1.8.1";
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:$serialJsonVersion")
+    implementation(libs.paho.mqtt.android)
+    implementation(libs.play.services.location)
+    implementation(libs.androidx.navigation.compose)
+    implementation(libs.kotlinx.serialization.json)
+    implementation(libs.retrofit)
+    implementation(libs.converter.gson)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
