@@ -55,6 +55,7 @@ import org.eclipse.paho.client.mqttv3.MqttMessage
 import ru.locationwatch.mobile_client.config.AppConfig
 import ru.locationwatch.mobile_client.ui.theme.MobileclientTheme
 import ru.locationwatch.mobile_client.ui.screens.AuthorizationScreen
+import ru.locationwatch.mobile_client.ui.screens.MainScreen
 
 class MainActivity : ComponentActivity() {
 
@@ -281,110 +282,6 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-}
-
-@Composable
-fun MainScreen(
-    statusText: MutableState<String>,
-    latitude: MutableState<String>,
-    longitude: MutableState<String>,
-    speed: MutableState<String>,
-    startPublish: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    val colorStops = arrayOf(
-        0.1f to Color.White,
-        0.6f to Color(0xFF7EE882),
-        1f to Color(0xFF1EE1AE)
-    )
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(
-                brush = Brush.linearGradient(
-                    start = Offset(0f, Float.POSITIVE_INFINITY),
-                    end = Offset(Float.POSITIVE_INFINITY, 0f),
-                    colorStops = colorStops
-                )
-            )
-    ) {
-        Column(
-            modifier = Modifier
-                .weight(5f)
-                .fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.SpaceEvenly
-        ) {
-            Column(
-                modifier = Modifier
-                    .width(300.dp)
-                    .height(400.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.SpaceEvenly
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                ) {
-                    Text(
-                        text = "Latitude: "
-                    )
-                    Text(
-                        text = latitude.value
-                    )
-                }
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                ) {
-                    Text(
-                        text = "Longitude: "
-                    )
-                    Text(
-                        text = longitude.value
-                    )
-                }
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                ) {
-                    Text(
-                        text = "Speed: "
-                    )
-                    Text(
-                        text = speed.value
-                    )
-                }
-            }
-            Row(
-                modifier = Modifier
-                    .width(300.dp)
-                    .height(50.dp),
-                horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = statusText.value
-                )
-            }
-        }
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(2f)
-                .padding(bottom = 80.dp),
-            horizontalArrangement = Arrangement.SpaceEvenly,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Button(
-                modifier = Modifier
-                    .size(120.dp),
-                onClick = { startPublish() }
-            ) {
-                Text("Start")
-            }
-        }
-    }
 }
 
 @Preview(showBackground = true)

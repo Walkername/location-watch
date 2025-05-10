@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
@@ -25,6 +26,9 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -108,9 +112,21 @@ fun SignUpForm(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.SpaceEvenly
     ) {
-        AuthTextField(username, "username")
-        AuthTextField(password, "password")
-        AuthTextField(passwordConfirmation, "password confirmation")
+        AuthTextField(
+            username,
+            KeyboardOptions(keyboardType = KeyboardType.Text),
+            "username"
+        )
+        AuthTextField(
+            password,
+            KeyboardOptions(keyboardType = KeyboardType.Password),
+            "password"
+        )
+        AuthTextField(
+            passwordConfirmation,
+            KeyboardOptions(keyboardType = KeyboardType.Password),
+            "password confirmation"
+        )
         Button(
             onClick = { }
         ) {
@@ -146,8 +162,16 @@ fun SignInForm(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.SpaceEvenly
     ) {
-        AuthTextField(username, "username")
-        AuthTextField(password, "password")
+        AuthTextField(
+            username,
+            KeyboardOptions(keyboardType = KeyboardType.Text),
+            "username"
+        )
+        AuthTextField(
+            password,
+            KeyboardOptions(keyboardType = KeyboardType.Password),
+            "password"
+        )
 
         when (uiState) {
             is AuthUiState.Loading -> {
@@ -187,8 +211,13 @@ fun SignInForm(
 @Composable
 fun AuthTextField(
     state: MutableState<String>,
+    keyboardOptions: KeyboardOptions,
     placeholder: String
 ) {
+    var visualTransformation = VisualTransformation.None
+    if (keyboardOptions.keyboardType == KeyboardType.Password) {
+        visualTransformation = PasswordVisualTransformation()
+    }
     OutlinedTextField(
         modifier = Modifier
             .clip(RoundedCornerShape(20.dp)),
@@ -198,10 +227,15 @@ fun AuthTextField(
             focusedBorderColor = Color(0x00000000),
             unfocusedBorderColor = Color(0x00000000)
         ),
+        keyboardOptions = keyboardOptions,
+        visualTransformation = visualTransformation,
         value = state.value,
         onValueChange = { newString -> state.value = newString },
         placeholder = {
-            Text(placeholder)
+            Text(
+                text = placeholder,
+                color = Color(0x80000000)
+            )
         }
     )
 }
