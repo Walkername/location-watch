@@ -70,7 +70,7 @@ class MainActivity : ComponentActivity() {
 
     private val mHandler = Handler(Looper.getMainLooper())
 
-    private lateinit var fusedLocationProviderClient: FusedLocationProviderClient
+    private var fusedLocationProviderClient: FusedLocationProviderClient? = null
     private lateinit var locationRequest: LocationRequest
     private lateinit var locationCallback : LocationCallback
     private var requestingLocationUpdates = true
@@ -82,6 +82,8 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         appConfig = AppConfig(applicationContext)
+
+        fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this)
 
         serverURI = appConfig.serverURI
         userId = appConfig.userId
@@ -173,28 +175,31 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun startLocationUpdates() {
-        if (ActivityCompat.checkSelfPermission(
-                this,
-                Manifest.permission.ACCESS_FINE_LOCATION
-            ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
-                this,
-                Manifest.permission.ACCESS_COARSE_LOCATION
-            ) != PackageManager.PERMISSION_GRANTED
-        ) {
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
-            return
+        fusedLocationProviderClient?.let { client ->
+            if (ActivityCompat.checkSelfPermission(
+                    this,
+                    Manifest.permission.ACCESS_FINE_LOCATION
+                ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
+                    this,
+                    Manifest.permission.ACCESS_COARSE_LOCATION
+                ) != PackageManager.PERMISSION_GRANTED
+            ) {
+                // TODO: Consider calling
+                //    ActivityCompat#requestPermissions
+                // here to request the missing permissions, and then overriding
+                //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+                //                                          int[] grantResults)
+                // to handle the case where the user grants the permission. See the documentation
+                // for ActivityCompat#requestPermissions for more details.
+                return
+            }
+            client.requestLocationUpdates(
+                locationRequest,
+                locationCallback,
+                Looper.getMainLooper()
+            )
         }
-        fusedLocationProviderClient.requestLocationUpdates(
-            locationRequest,
-            locationCallback,
-            Looper.getMainLooper()
-        )
+
     }
 
     override fun onPause() {
@@ -203,17 +208,19 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun stopLocationUpdates() {
-        fusedLocationProviderClient.removeLocationUpdates(locationCallback)
+        fusedLocationProviderClient?.let {
+            it.removeLocationUpdates(locationCallback)
+        }
     }
 
     private fun updateGPS() {
-        fusedLocationProviderClient =
-            LocationServices.getFusedLocationProviderClient(this@MainActivity)
+//        fusedLocationProviderClient =
+//            LocationServices.getFusedLocationProviderClient(this@MainActivity)
         if (ActivityCompat.checkSelfPermission(
                 this, Manifest.permission.ACCESS_FINE_LOCATION
             ) == PackageManager.PERMISSION_GRANTED
         ) {
-            fusedLocationProviderClient.lastLocation.addOnSuccessListener {
+            fusedLocationProviderClient?.lastLocation?.addOnSuccessListener {
                 latitude.value = it.latitude.toString()
                 longitude.value = it.longitude.toString()
                 speed.value = it.speed.toString()
