@@ -1,6 +1,7 @@
 package ru.locationwatch.mobile_client.ui.screens
 
 import android.app.Application
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -9,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
@@ -34,8 +36,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import ru.locationwatch.mobile_client.ui.AuthUiState
+import ru.locationwatch.mobile_client.ui.LoginUiState
 import ru.locationwatch.mobile_client.ui.AuthViewModel
+import ru.locationwatch.mobile_client.ui.RegisterUiState
 import ru.locationwatch.mobile_client.ui.theme.MobileclientTheme
 
 @Composable
@@ -84,7 +87,10 @@ fun AuthorizationScreen(
                     authType = authType
                 )
             } else {
-                SignUpForm(authType = authType)
+                SignUpForm(
+                    authType = authType,
+                    viewModel = viewModel
+                )
             }
 
 
@@ -94,8 +100,11 @@ fun AuthorizationScreen(
 
 @Composable
 fun SignUpForm(
-    authType: MutableState<Boolean>
+    authType: MutableState<Boolean>,
+    viewModel: AuthViewModel
 ) {
+    var uiState: RegisterUiState = viewModel.registerUiState
+
     val username = remember {
         mutableStateOf("")
     }
@@ -127,8 +136,50 @@ fun SignUpForm(
             KeyboardOptions(keyboardType = KeyboardType.Password),
             "password confirmation"
         )
+
+        when (uiState) {
+            is RegisterUiState.Loading -> {
+            }
+
+            is RegisterUiState.Success -> {
+
+                AlertDialog(
+                    onDismissRequest = { },
+                    title = {
+                        Text("Success")
+                    },
+                    text = {
+                        Text("Registration successful!")
+                    },
+                    confirmButton = {
+                        Button(
+                            onClick = {
+                                viewModel.resetRegisterState()
+                                authType.value = false
+                            }
+                        ) {
+                            Text("OK")
+                        }
+                    }
+                )
+            }
+
+            is RegisterUiState.Error -> {
+                Text(
+                    text = "Registration error",
+                    color = Color(0xFFFF0000)
+                )
+            }
+        }
+
         Button(
-            onClick = { }
+            onClick = {
+                if (password.value != passwordConfirmation.value) {
+                    // Show error
+                    return@Button
+                }
+                viewModel.register(username.value, password.value)
+            }
         ) {
             Text("Sign Up")
         }
@@ -147,7 +198,7 @@ fun SignInForm(
     viewModel: AuthViewModel,
     authType: MutableState<Boolean>
 ) {
-    var uiState: AuthUiState = viewModel.authUiState
+    var uiState: LoginUiState = viewModel.loginUiState
 
     val username = remember {
         mutableStateOf("")
@@ -174,17 +225,17 @@ fun SignInForm(
         )
 
         when (uiState) {
-            is AuthUiState.Loading -> {
+            is LoginUiState.Loading -> {
             }
 
-            is AuthUiState.Success -> {
+            is LoginUiState.Success -> {
                 LaunchedEffect(uiState) {
                     navigateToMain()
-                    uiState = AuthUiState.Loading
+                    viewModel.resetLoginState()
                 }
             }
 
-            is AuthUiState.Error -> {
+            is LoginUiState.Error -> {
                 Text(
                     text = "Wrong username or password",
                     color = Color(0xFFFF0000)

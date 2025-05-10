@@ -17,32 +17,65 @@ import ru.locationwatch.mobile_client.data.AuthRepository
 import ru.locationwatch.mobile_client.network.models.JWTResponse
 import java.io.IOException
 
-sealed interface AuthUiState {
-    data class Success(val jwtResponse: JWTResponse) : AuthUiState
-    object Error : AuthUiState
-    object Loading : AuthUiState
+sealed interface LoginUiState {
+    data class Success(val jwtResponse: JWTResponse) : LoginUiState
+    object Error : LoginUiState
+    object Loading : LoginUiState
+}
+
+sealed interface RegisterUiState {
+    object Success : RegisterUiState
+    data class Error(val message: String) : RegisterUiState
+    object Loading : RegisterUiState
 }
 
 class AuthViewModel(
     private val authRepository: AuthRepository
 ) : ViewModel() {
 
-    var authUiState: AuthUiState by mutableStateOf(AuthUiState.Loading)
+    var loginUiState: LoginUiState by mutableStateOf(LoginUiState.Loading)
+        private set
+
+    var registerUiState: RegisterUiState by mutableStateOf(RegisterUiState.Loading)
         private set
 
     fun login(username: String, password: String) {
         viewModelScope.launch {
-            authUiState = AuthUiState.Loading
-            authUiState = try {
-                AuthUiState.Success(authRepository.login(username, password))
+            loginUiState = LoginUiState.Loading
+            loginUiState = try {
+                LoginUiState.Success(authRepository.login(username, password))
             } catch (e: IOException) {
                 e.message?.let { Log.e("log-in", it) }
-                AuthUiState.Error
+                LoginUiState.Error
             } catch (e: HttpException) {
                 Log.e("log-in", e.message())
-                AuthUiState.Error
+                LoginUiState.Error
             }
         }
+    }
+
+    fun register(username: String, password: String) {
+        viewModelScope.launch {
+            registerUiState = RegisterUiState.Loading
+            registerUiState = try {
+                authRepository.register(username, password)
+                RegisterUiState.Success
+            } catch (e: IOException) {
+                e.message?.let { Log.e("register", it) }
+                RegisterUiState.Error("Network error")
+            } catch (e: HttpException) {
+                Log.e("register", e.message())
+                RegisterUiState.Error("Server error")
+            }
+        }
+    }
+
+    fun resetRegisterState() {
+        registerUiState = RegisterUiState.Loading
+    }
+
+    fun resetLoginState() {
+        loginUiState = LoginUiState.Loading
     }
 
     companion object {
