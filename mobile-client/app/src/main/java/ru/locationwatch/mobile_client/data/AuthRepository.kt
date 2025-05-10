@@ -1,12 +1,9 @@
 package ru.locationwatch.mobile_client.data
 
-import android.util.Log
 import retrofit2.HttpException
-import retrofit2.Response
 import ru.locationwatch.mobile_client.network.models.AuthRequest
 import ru.locationwatch.mobile_client.network.models.JWTResponse
 import ru.locationwatch.mobile_client.network.AuthService
-import ru.locationwatch.mobile_client.network.TokenManager
 
 interface AuthRepository {
 
