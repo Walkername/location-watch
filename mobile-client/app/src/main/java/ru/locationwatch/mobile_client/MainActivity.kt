@@ -54,8 +54,7 @@ import org.eclipse.paho.client.mqttv3.MqttException
 import org.eclipse.paho.client.mqttv3.MqttMessage
 import ru.locationwatch.mobile_client.config.AppConfig
 import ru.locationwatch.mobile_client.ui.theme.MobileclientTheme
-import ru.locationwatch.mobile_client.ui.theme.ui.AuthViewModel
-import ru.locationwatch.mobile_client.ui.theme.ui.AuthorizationScreen
+import ru.locationwatch.mobile_client.ui.screens.AuthorizationScreen
 
 class MainActivity : ComponentActivity() {
 
@@ -214,8 +213,6 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun updateGPS() {
-//        fusedLocationProviderClient =
-//            LocationServices.getFusedLocationProviderClient(this@MainActivity)
         if (ActivityCompat.checkSelfPermission(
                 this, Manifest.permission.ACCESS_FINE_LOCATION
             ) == PackageManager.PERMISSION_GRANTED

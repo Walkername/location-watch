@@ -1,6 +1,7 @@
 package ru.locationwatch.mobile_client.data
 
 import android.util.Log
+import retrofit2.HttpException
 import retrofit2.Response
 import ru.locationwatch.mobile_client.network.models.AuthRequest
 import ru.locationwatch.mobile_client.network.models.JWTResponse
@@ -20,14 +21,12 @@ class NetworkAuthRepository(
 
     override suspend fun login(username: String, password: String) : JWTResponse {
         val response = authService.login(AuthRequest(username, password))
-        return response.body() ?: throw Exception("Login failed: ${response.code()}")
+        return response.body() ?: throw HttpException(response)
     }
 
     override suspend fun register(username: String, password: String) {
         val response = authService.register(AuthRequest(username, password))
-        if (!response.isSuccessful) {
-            throw Exception("Registration failed: ${response.code()}")
-        }
+        return response.body() ?: throw HttpException(response)
     }
 
 }
