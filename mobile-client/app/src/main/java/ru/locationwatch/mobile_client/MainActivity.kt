@@ -130,7 +130,8 @@ class MainActivity : ComponentActivity() {
                                 latitude = latitude,
                                 longitude = longitude,
                                 speed = speed,
-                                startPublish = { startPublish(statusText) }
+                                startPublish = { startPublish(statusText) },
+                                navigateToAuth = { navController.navigate(AuthorizationScreen) }
                             )
                         }
                         composable<AuthorizationScreen> {
@@ -282,24 +283,4 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-}
-
-@Preview(showBackground = true)
-@Composable
-fun MainPreview() {
-    MobileclientTheme {
-        val statusText = remember {
-            mutableStateOf("Status")
-        }
-        val latitude = remember {
-            mutableStateOf("100.0")
-        }
-        MainScreen(
-            statusText = statusText,
-            latitude = latitude,
-            longitude = latitude,
-            speed = latitude,
-            startPublish = {}
-        )
-    }
 }

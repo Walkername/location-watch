@@ -14,12 +14,16 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import ru.locationwatch.mobile_client.ui.theme.MobileclientTheme
 
 @Composable
 fun MainScreen(
@@ -28,7 +32,7 @@ fun MainScreen(
     longitude: MutableState<String>,
     speed: MutableState<String>,
     startPublish: () -> Unit,
-    modifier: Modifier = Modifier
+    navigateToAuth: () -> Unit
 ) {
     val colorStops = arrayOf(
         0.1f to Color.White,
@@ -46,6 +50,15 @@ fun MainScreen(
                 )
             )
     ) {
+        Button(
+            modifier = Modifier
+                .padding(start = 10.dp, top = 10.dp),
+            onClick = { navigateToAuth() }
+        ) {
+            Text(
+                text = "Exit"
+            )
+        }
         Column(
             modifier = Modifier
                 .weight(5f)
@@ -122,5 +135,26 @@ fun MainScreen(
                 Text("Start")
             }
         }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun MainPreview() {
+    MobileclientTheme {
+        val statusText = remember {
+            mutableStateOf("Status")
+        }
+        val latitude = remember {
+            mutableStateOf("100.0")
+        }
+        MainScreen(
+            statusText = statusText,
+            latitude = latitude,
+            longitude = latitude,
+            speed = latitude,
+            startPublish = {},
+            navigateToAuth = {}
+        )
     }
 }
