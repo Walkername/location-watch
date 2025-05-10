@@ -13,6 +13,7 @@ import ru.locationwatch.backend.dto.JWTResponse;
 import ru.locationwatch.backend.models.Person;
 import ru.locationwatch.backend.services.AuthService;
 import ru.locationwatch.backend.services.TokenService;
+import ru.locationwatch.backend.util.LoginException;
 import ru.locationwatch.backend.util.PersonErrorResponse;
 import ru.locationwatch.backend.util.PersonValidator;
 import ru.locationwatch.backend.util.RegistrationException;
@@ -90,6 +91,16 @@ public class AuthController {
 
     @ExceptionHandler
     private ResponseEntity<PersonErrorResponse> handleException(RegistrationException ex) {
+        PersonErrorResponse response = new PersonErrorResponse(
+                ex.getMessage(),
+                System.currentTimeMillis()
+        );
+
+        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler
+    private ResponseEntity<PersonErrorResponse> handleException(LoginException ex) {
         PersonErrorResponse response = new PersonErrorResponse(
                 ex.getMessage(),
                 System.currentTimeMillis()
