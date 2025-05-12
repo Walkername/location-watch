@@ -103,7 +103,7 @@ fun SignUpForm(
     authType: MutableState<Boolean>,
     viewModel: AuthViewModel
 ) {
-    var uiState: RegisterUiState = viewModel.registerUiState
+    val uiState: RegisterUiState = viewModel.registerUiState
 
     val username = remember {
         mutableStateOf("")
@@ -112,6 +112,9 @@ fun SignUpForm(
         mutableStateOf("")
     }
     val passwordConfirmation = remember {
+        mutableStateOf("")
+    }
+    val errorMessage = remember {
         mutableStateOf("")
     }
 
@@ -172,10 +175,15 @@ fun SignUpForm(
             }
         }
 
+        Text(
+            text = errorMessage.value,
+            color = Color(0xFFFF0000)
+        )
+
         Button(
             onClick = {
                 if (password.value != passwordConfirmation.value) {
-                    // Show error
+                    errorMessage.value = "Passwords are not equal"
                     return@Button
                 }
                 viewModel.register(username.value, password.value)
@@ -198,12 +206,15 @@ fun SignInForm(
     viewModel: AuthViewModel,
     authType: MutableState<Boolean>
 ) {
-    var uiState: LoginUiState = viewModel.loginUiState
+    val uiState: LoginUiState = viewModel.loginUiState
 
     val username = remember {
         mutableStateOf("")
     }
     val password = remember {
+        mutableStateOf("")
+    }
+    val errorMessage = remember {
         mutableStateOf("")
     }
 
@@ -236,12 +247,14 @@ fun SignInForm(
             }
 
             is LoginUiState.Error -> {
-                Text(
-                    text = "Wrong username or password",
-                    color = Color(0xFFFF0000)
-                )
+                errorMessage.value = "Wrong username or password"
             }
         }
+
+        Text(
+            text = errorMessage.value,
+            color = Color(0xFFFF0000)
+        )
 
         Button(
             onClick = {
