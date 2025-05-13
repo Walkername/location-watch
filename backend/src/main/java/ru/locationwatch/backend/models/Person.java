@@ -13,11 +13,12 @@ public class Person {
     private int id;
 
     @NotEmpty(message = "Username should not be empty")
-    @Size(min = 1, max = 20, message = "Username size should be greater than 1 and less than 20")
+    @Size(min = 5, max = 20, message = "Username size should be greater than 1 and less than 20")
     @Column(name = "username")
     private String username;
 
     @NotEmpty(message = "Password should not be empty")
+    @Size(min = 5, message = "Password size should be greater than 1 and less than 50")
     @Column(name = "password")
     private String password;
 
