@@ -15,6 +15,7 @@ import kotlinx.coroutines.launch
 import retrofit2.HttpException
 import ru.locationwatch.mobile_client.AuthApplication
 import ru.locationwatch.mobile_client.data.AuthRepository
+import ru.locationwatch.mobile_client.network.TokenManager
 import ru.locationwatch.mobile_client.network.models.JWTResponse
 import ru.locationwatch.mobile_client.network.models.PersonErrorResponse
 import java.io.IOException
@@ -32,7 +33,8 @@ sealed interface RegisterUiState {
 }
 
 class AuthViewModel(
-    private val authRepository: AuthRepository
+    private val authRepository: AuthRepository,
+    private val tokenManager: TokenManager
 ) : ViewModel() {
 
     var loginUiState: LoginUiState by mutableStateOf(LoginUiState.Loading)
@@ -41,11 +43,21 @@ class AuthViewModel(
     var registerUiState: RegisterUiState by mutableStateOf(RegisterUiState.Loading)
         private set
 
+    var userId by mutableStateOf<Int?>(null)
+        private set
+
     fun login(username: String, password: String) {
         viewModelScope.launch {
             loginUiState = LoginUiState.Loading
             loginUiState = try {
-                LoginUiState.Success(authRepository.login(username, password))
+                val response = authRepository.login(username, password)
+                response.accessToken?.let { access ->
+                    response.refreshToken?.let { refresh ->
+                        tokenManager.saveTokens(access, refresh)
+                    }
+                }
+                updateUserId()
+                LoginUiState.Success(response)
             } catch (e: IOException) {
                 e.message?.let { Log.e("log-in", it) }
                 LoginUiState.Error("")
@@ -85,6 +97,16 @@ class AuthViewModel(
         }
     }
 
+    fun loadUserId() {
+        userId = tokenManager.getUserId()
+    }
+
+    fun updateUserId() {
+        viewModelScope.launch {
+            userId = tokenManager.getUserId()
+        }
+    }
+
     fun resetRegisterState() {
         registerUiState = RegisterUiState.Loading
     }
@@ -98,7 +120,11 @@ class AuthViewModel(
             return viewModelFactory {
                 initializer {
                     val authRepository = (application as AuthApplication).container.authRepository
-                    AuthViewModel(authRepository = authRepository)
+                    val tokenManager = application.container.tokenManager
+                    AuthViewModel(
+                        authRepository = authRepository,
+                        tokenManager = tokenManager
+                    )
                 }
             }
         }
