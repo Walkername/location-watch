@@ -10,16 +10,18 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
+import com.google.gson.Gson
 import kotlinx.coroutines.launch
 import retrofit2.HttpException
 import ru.locationwatch.mobile_client.AuthApplication
 import ru.locationwatch.mobile_client.data.AuthRepository
 import ru.locationwatch.mobile_client.network.models.JWTResponse
+import ru.locationwatch.mobile_client.network.models.PersonErrorResponse
 import java.io.IOException
 
 sealed interface LoginUiState {
     data class Success(val jwtResponse: JWTResponse) : LoginUiState
-    object Error : LoginUiState
+    data class Error(val message: String) : LoginUiState
     object Loading : LoginUiState
 }
 
@@ -46,10 +48,17 @@ class AuthViewModel(
                 LoginUiState.Success(authRepository.login(username, password))
             } catch (e: IOException) {
                 e.message?.let { Log.e("log-in", it) }
-                LoginUiState.Error
+                LoginUiState.Error("")
             } catch (e: HttpException) {
                 Log.e("log-in", e.message())
-                LoginUiState.Error
+                val errorBody = e.response()?.errorBody()?.string()
+                val errorResponse = parseError(errorBody)
+                if (errorResponse?.message != null) {
+                    LoginUiState.Error(errorResponse.message)
+                } else {
+                    LoginUiState.Error("Login error")
+                }
+
             }
         }
     }
@@ -65,7 +74,13 @@ class AuthViewModel(
                 RegisterUiState.Error("Network error")
             } catch (e: HttpException) {
                 Log.e("register", e.message())
-                RegisterUiState.Error("Server error")
+                val errorBody = e.response()?.errorBody()?.string()
+                val errorResponse = parseError(errorBody)
+                if (errorResponse?.message != null) {
+                    RegisterUiState.Error(errorResponse.message)
+                } else {
+                    RegisterUiState.Error("Register error")
+                }
             }
         }
     }
@@ -86,6 +101,15 @@ class AuthViewModel(
                     AuthViewModel(authRepository = authRepository)
                 }
             }
+        }
+    }
+
+    private fun parseError(errorBody: String?): PersonErrorResponse? {
+        if (errorBody.isNullOrEmpty()) return null
+        return try {
+            Gson().fromJson(errorBody, PersonErrorResponse::class.java)
+        } catch (e: Exception) {
+            null
         }
     }
 

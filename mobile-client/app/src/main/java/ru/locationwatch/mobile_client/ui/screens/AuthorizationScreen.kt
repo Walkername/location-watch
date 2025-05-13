@@ -168,10 +168,7 @@ fun SignUpForm(
             }
 
             is RegisterUiState.Error -> {
-                Text(
-                    text = "Registration error",
-                    color = Color(0xFFFF0000)
-                )
+                errorMessage.value = uiState.message
             }
         }
 
@@ -182,10 +179,29 @@ fun SignUpForm(
 
         Button(
             onClick = {
-                if (password.value != passwordConfirmation.value) {
-                    errorMessage.value = "Passwords are not equal"
-                    return@Button
+                when {
+                    username.value.length < 5 -> {
+                        errorMessage.value = "Username should be greater than 5 characters"
+                        return@Button
+                    }
+                    username.value.length > 20 -> {
+                        errorMessage.value = "Username should be less than 20 characters"
+                        return@Button
+                    }
+                    password.value.length < 5 -> {
+                        errorMessage.value = "Password should be greater than 5 characters"
+                        return@Button
+                    }
+                    password.value.length > 50 -> {
+                        errorMessage.value = "Password should be less that 50 characters"
+                        return@Button
+                    }
+                    password.value != passwordConfirmation.value -> {
+                        errorMessage.value = "Password are not equal"
+                        return@Button
+                    }
                 }
+
                 viewModel.register(username.value, password.value)
             }
         ) {
@@ -247,7 +263,7 @@ fun SignInForm(
             }
 
             is LoginUiState.Error -> {
-                errorMessage.value = "Wrong username or password"
+                errorMessage.value = uiState.message
             }
         }
 
@@ -258,6 +274,24 @@ fun SignInForm(
 
         Button(
             onClick = {
+                when {
+                    username.value.length < 5 -> {
+                        errorMessage.value = "Username should be greater than 5 characters"
+                        return@Button
+                    }
+                    username.value.length > 20 -> {
+                        errorMessage.value = "Username should be less than 20 characters"
+                        return@Button
+                    }
+                    password.value.length < 5 -> {
+                        errorMessage.value = "Password should be greater than 5 characters"
+                        return@Button
+                    }
+                    password.value.length > 50 -> {
+                        errorMessage.value = "Password should be less that 50 characters"
+                        return@Button
+                    }
+                }
                 viewModel.login(username.value, password.value)
             }
         ) {
