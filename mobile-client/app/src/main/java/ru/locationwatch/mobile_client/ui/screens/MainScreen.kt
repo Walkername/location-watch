@@ -1,5 +1,6 @@
 package ru.locationwatch.mobile_client.ui.screens
 
+import android.app.Application
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -13,6 +14,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -21,8 +23,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import ru.locationwatch.mobile_client.ui.AuthViewModel
+import ru.locationwatch.mobile_client.ui.UserUiState
+import ru.locationwatch.mobile_client.ui.UserViewModel
 import ru.locationwatch.mobile_client.ui.theme.MobileclientTheme
 
 @Composable
@@ -34,6 +42,37 @@ fun MainScreen(
     startPublish: () -> Unit,
     navigateToAuth: () -> Unit
 ) {
+    val app = LocalContext.current.applicationContext as Application
+    val userViewModelFactory = UserViewModel.createFactory(app)
+    val userViewModel: UserViewModel = viewModel(factory = userViewModelFactory)
+
+    val authViewModelFactory = AuthViewModel.createFactory(app)
+    val authViewModel: AuthViewModel = viewModel(factory = authViewModelFactory)
+
+    LaunchedEffect(Unit) {
+        authViewModel.loadUserId()
+        userViewModel.fetchUser(authViewModel.userId!!)
+    }
+
+    val userUiState = userViewModel.userUiState
+
+    val username = remember {
+        mutableStateOf("")
+    }
+
+    when (userUiState) {
+        is UserUiState.Loading -> {
+        }
+
+        is UserUiState.Success -> {
+            val userName: String = if (userUiState.user.username != null) userUiState.user.username!! else ""
+            username.value = userName
+        }
+
+        is UserUiState.Error -> {
+        }
+    }
+
     val colorStops = arrayOf(
         0.1f to Color.White,
         0.6f to Color(0xFF7EE882),
@@ -73,6 +112,16 @@ fun MainScreen(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.SpaceEvenly
             ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    Text(
+                        text = username.value,
+                        fontSize = 24.sp
+                    )
+                }
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
