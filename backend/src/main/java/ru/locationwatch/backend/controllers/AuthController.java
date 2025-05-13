@@ -74,7 +74,7 @@ public class AuthController {
 
     // TODO: endpoint to get new refresh token
 
-    public void validatePerson(BindingResult bindingResult) {
+    private void validatePerson(BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
             StringBuilder errorMsg = new StringBuilder();
             List<FieldError> errors = bindingResult.getFieldErrors();
