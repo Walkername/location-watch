@@ -12,6 +12,7 @@ import ru.locationwatch.backend.dto.AuthDTO;
 import ru.locationwatch.backend.dto.JWTResponse;
 import ru.locationwatch.backend.models.Person;
 import ru.locationwatch.backend.services.AuthService;
+import ru.locationwatch.backend.services.PeopleService;
 import ru.locationwatch.backend.services.TokenService;
 import ru.locationwatch.backend.util.LoginException;
 import ru.locationwatch.backend.util.PersonErrorResponse;
@@ -19,6 +20,7 @@ import ru.locationwatch.backend.util.PersonValidator;
 import ru.locationwatch.backend.util.RegistrationException;
 
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/auth")
@@ -28,17 +30,19 @@ public class AuthController {
     private final ModelMapper modelMapper;
     private final TokenService tokenService;
     private final PersonValidator personValidator;
+    private final PeopleService peopleService;
 
     @Autowired
     public AuthController(
             AuthService authService,
             ModelMapper modelMapper,
             TokenService tokenService,
-            PersonValidator personValidator) {
+            PersonValidator personValidator, PeopleService peopleService) {
         this.authService = authService;
         this.modelMapper = modelMapper;
         this.tokenService = tokenService;
         this.personValidator = personValidator;
+        this.peopleService = peopleService;
     }
 
     @PostMapping("/register")
@@ -65,8 +69,12 @@ public class AuthController {
 
         authService.check(person);
 
-        String accessToken = tokenService.generateAccessToken(person);
-        String refreshToken = tokenService.generateRefreshToken(person);
+        Optional<Person> newPerson = peopleService.findByUsername(person.getUsername());
+        if (newPerson.isEmpty()) {
+            throw new LoginException("Invalid username/password");
+        }
+        String accessToken = tokenService.generateAccessToken(newPerson.get());
+        String refreshToken = tokenService.generateRefreshToken(newPerson.get());
         return new JWTResponse(accessToken, refreshToken);
     }
 
