@@ -1,4 +1,4 @@
-package ru.locationwatch.mobile_client
+package ru.locationwatch.mobile_client.ui
 
 import kotlinx.serialization.Serializable
 
