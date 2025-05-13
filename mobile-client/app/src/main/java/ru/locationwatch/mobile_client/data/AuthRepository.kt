@@ -1,7 +1,6 @@
 package ru.locationwatch.mobile_client.data
 
 import retrofit2.HttpException
-import retrofit2.Response
 import ru.locationwatch.mobile_client.network.models.AuthRequest
 import ru.locationwatch.mobile_client.network.models.JWTResponse
 import ru.locationwatch.mobile_client.network.AuthService
