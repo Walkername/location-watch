@@ -97,6 +97,10 @@ class AuthViewModel(
         }
     }
 
+    fun getExpirationTime(): Long? {
+        return tokenManager.getExpirationTime()
+    }
+
     fun resetTokens() {
         tokenManager.clearTokens()
     }
