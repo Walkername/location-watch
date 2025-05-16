@@ -1,6 +1,7 @@
 package ru.locationwatch.mobile_client.ui.screens
 
 import android.app.Application
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -39,6 +40,7 @@ import ru.locationwatch.mobile_client.ui.LoginUiState
 import ru.locationwatch.mobile_client.ui.AuthViewModel
 import ru.locationwatch.mobile_client.ui.RegisterUiState
 import ru.locationwatch.mobile_client.ui.theme.MobileclientTheme
+import java.util.Date
 
 @Composable
 fun AuthorizationScreen(
@@ -57,9 +59,20 @@ fun AuthorizationScreen(
     val viewModelFactory = AuthViewModel.createFactory(app)
     val viewModel: AuthViewModel = viewModel(factory = viewModelFactory)
 
-    if (viewModel.getAccessToken() != null) {
-        LaunchedEffect(Unit) {
-            navigateToMain()
+    val accessToken = viewModel.getAccessToken()
+    val expirationTime = viewModel.getExpirationTime()
+    val currentTime = Date().time
+
+    if (accessToken != null) {
+        expirationTime?.let {
+            if (it * 1000 > currentTime) {
+                LaunchedEffect(Unit) {
+                    navigateToMain()
+                }
+            } else {
+                Log.e("token", "token is expired")
+                viewModel.resetTokens()
+            }
         }
     }
 
