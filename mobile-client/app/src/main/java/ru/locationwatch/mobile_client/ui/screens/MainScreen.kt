@@ -18,18 +18,22 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material3.Button
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarColors
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -40,11 +44,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -139,131 +143,50 @@ fun MainScreen(
     }
 
     val colorStops = arrayOf(
-        0.1f to Color.White,
-        0.6f to Color(0xFF7EE882),
+        0.65f to Color.White,
+        0.8f to Color(0xFF7EE882),
         1f to Color(0xFF1EE1AE)
     )
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(
-                brush = Brush.linearGradient(
-                    start = Offset(0f, Float.POSITIVE_INFINITY),
-                    end = Offset(Float.POSITIVE_INFINITY, 0f),
+                brush = Brush.verticalGradient(
                     colorStops = colorStops
                 )
             )
     ) {
-        Button(
-            modifier = Modifier
-                .padding(start = 10.dp, top = 10.dp),
-            onClick = {
-                navigateToAuth()
-                authViewModel.resetTokens()
-            }
-        ) {
-            Text(
-                text = "Exit"
-            )
-        }
+        NavigationBar(
+            modifier = Modifier,
+            navigateToAuth = { navigateToAuth() },
+            authViewModel = authViewModel,
+            username = username
+        )
         Column(
             modifier = Modifier
-                .weight(5f)
                 .fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.SpaceEvenly
         ) {
-            Column(
+            MapContainer(
                 modifier = Modifier
-                    .width(400.dp)
-                    .height(500.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.SpaceEvenly
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth(),
-                    horizontalArrangement = Arrangement.Center
-                ) {
-                    Text(
-                        text = username.value,
-                        fontSize = 24.sp
-                    )
-                }
-//                Row(
-//                    modifier = Modifier
-//                        .fillMaxWidth()
-//                ) {
-//                    Text(
-//                        text = "Latitude: "
-//                    )
-//                    Text(
-//                        text = latitude.value
-//                    )
-//                }
-//                Row(
-//                    modifier = Modifier
-//                        .fillMaxWidth()
-//                ) {
-//                    Text(
-//                        text = "Longitude: "
-//                    )
-//                    Text(
-//                        text = longitude.value
-//                    )
-//                }
-//                Row(
-//                    modifier = Modifier
-//                        .fillMaxWidth()
-//                ) {
-//                    Text(
-//                        text = "Speed: "
-//                    )
-//                    Text(
-//                        text = speed.value
-//                    )
-//                }
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(700.dp)  // Fixed height for map container
-                        .padding(8.dp)
-                ) {
-                    OpenStreetMap(
-                        modifier = Modifier
-                            .fillMaxSize(),
-                        initialPosition = GeoPoint(59.937500, 30.308611),
-                        zones = zones.value
-                    )
-                }
-            }
-            Row(
+                    .weight(8f),
+                zones = zones.value,
+                latitude = latitude,
+                longitude = longitude
+            )
+
+            StatusBar(
                 modifier = Modifier
-                    .width(300.dp)
-                    .height(50.dp),
-                horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = statusText.value
-                )
-            }
-        }
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(2f)
-                .padding(bottom = 80.dp),
-            horizontalArrangement = Arrangement.SpaceEvenly,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Button(
+                    .weight(0.5f),
+                statusText = statusText
+            )
+
+            MenuBar(
                 modifier = Modifier
-                    .size(80.dp),
-                onClick = { startPublish() }
-            ) {
-                Text("Start")
-            }
+                    .weight(1f),
+                startPublish = { startPublish() }
+            )
         }
     }
 }
@@ -294,10 +217,12 @@ fun OpenStreetMap(
 
     val userMarker = remember {
         Marker(mapView).apply {
-            icon = BitmapDrawable(context.resources, Bitmap.createScaledBitmap(
-                ContextCompat.getDrawable(context, R.drawable.gps_loc)!!.toBitmap(),
-                40, 40, true
-            ))
+            icon = BitmapDrawable(
+                context.resources, Bitmap.createScaledBitmap(
+                    ContextCompat.getDrawable(context, R.drawable.gps_loc)!!.toBitmap(),
+                    40, 40, true
+                )
+            )
             setOnMarkerClickListener { _, _ -> true }
             mapView.overlays.add(this)
         }
@@ -340,9 +265,9 @@ fun OpenStreetMap(
                     points = cords.map { GeoPoint(it.x!!, it.y!!) }
                     fillPaint.apply {
                         color = when (zone.typeName) {
-                            "NO_SPEED"   -> 0x80FF0000.toInt()
+                            "NO_SPEED" -> 0x80FF0000.toInt()
                             "LESS_SPEED" -> 0x800048FF.toInt()
-                            else         -> Color.Transparent.toArgb()
+                            else -> Color.Transparent.toArgb()
                         }
                         style = Paint.Style.FILL
                     }
@@ -359,7 +284,7 @@ fun OpenStreetMap(
     }
 
     AndroidView(
-        factory  = { mapView },
+        factory = { mapView },
         modifier = modifier
             .clip(RoundedCornerShape(12.dp))
             .border(2.dp, Color.Gray, RoundedCornerShape(12.dp))
@@ -371,23 +296,154 @@ fun OpenStreetMap(
     }
 }
 
+@Composable
+fun MapContainer(
+    modifier: Modifier,
+    zones: List<ZoneResponse>,
+    latitude: MutableState<String>,
+    longitude: MutableState<String>
+) {
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(8.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.SpaceEvenly
+    ) {
+        OpenStreetMap(
+            zones = zones,
+            initialPosition = GeoPoint(59.937500, 30.308611),
+            // For development during checking on virtual device use your own location gps
+            // You can do it in OpenStreetMap
+//            latitude = latitude,
+//            longitude = longitude
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun NavigationBar(
+    modifier: Modifier,
+    navigateToAuth: () -> Unit,
+    authViewModel: AuthViewModel,
+    username: MutableState<String>
+) {
+    TopAppBar(
+        modifier = modifier,
+        title = {
+            Text(
+                text = username.value,
+                textAlign = TextAlign.Center,
+                fontSize = 24.sp
+            )
+        },
+        actions = {
+            IconButton({
+                authViewModel.resetTokens()
+                navigateToAuth()
+            }) {
+                Icon(
+                    Icons.AutoMirrored.Filled.ExitToApp,
+                    contentDescription = "Exit"
+                )
+            }
+        }
+    )
+}
+
+@Composable
+fun MenuBar(
+    modifier: Modifier,
+    startPublish: () -> Unit
+) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(bottom = 20.dp),
+        horizontalArrangement = Arrangement.SpaceEvenly,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Button(
+            modifier = Modifier
+                .size(80.dp),
+            onClick = { startPublish() }
+        ) {
+            Text("Start")
+        }
+    }
+}
+
+@Composable
+fun StatusBar(
+    modifier: Modifier,
+    statusText: MutableState<String>
+) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth(),
+        horizontalArrangement = Arrangement.Center,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = statusText.value
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
 @Preview(showBackground = true)
 @Composable
 fun MainPreview() {
     MobileclientTheme {
-        val statusText = remember {
-            mutableStateOf("Status")
-        }
-        val latitude = remember {
-            mutableStateOf("100.0")
-        }
-        MainScreen(
-            statusText = statusText,
-            latitude = latitude,
-            longitude = latitude,
-            speed = latitude,
-            startPublish = {},
-            navigateToAuth = {}
+        val colorStops = arrayOf(
+            0.65f to Color.White,
+            0.8f to Color(0xFF7EE882),
+            1f to Color(0xFF1EE1AE)
         )
+
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    brush = Brush.verticalGradient(
+                        colorStops = colorStops
+                    )
+                )
+        ) {
+            TopAppBar(
+                title = {
+                    Text(
+                        text = "walkername",
+                        textAlign = TextAlign.Center,
+                        fontSize = 24.sp
+                    )
+                },
+                colors = TopAppBarColors(
+                    containerColor = Color(0xFFFFFFFF),
+                    scrolledContainerColor = Color(0xFF7EE882),
+                    navigationIconContentColor = Color(0xFF7EE882),
+                    titleContentColor = Color(0xFF000000),
+                    actionIconContentColor = Color(0xFF000000),
+                ),
+                actions = {
+                    IconButton({
+                    }) {
+                        Icon(
+                            Icons.AutoMirrored.Filled.ExitToApp,
+                            contentDescription = "Exit"
+                        )
+                    }
+                }
+            )
+            Column(
+                modifier = Modifier
+                    .fillMaxSize(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.SpaceEvenly
+            ) {
+
+            }
+        }
     }
 }
