@@ -35,8 +35,6 @@ import org.eclipse.paho.client.mqttv3.MqttConnectOptions
 import org.eclipse.paho.client.mqttv3.MqttException
 import org.eclipse.paho.client.mqttv3.MqttMessage
 import ru.locationwatch.mobile_client.config.AppConfig
-import ru.locationwatch.mobile_client.ui.AuthorizationScreen
-import ru.locationwatch.mobile_client.ui.MainScreen
 import ru.locationwatch.mobile_client.ui.theme.MobileclientTheme
 import ru.locationwatch.mobile_client.ui.screens.AuthorizationScreen
 import ru.locationwatch.mobile_client.ui.screens.MainScreen
@@ -106,7 +104,7 @@ class MainActivity : ComponentActivity() {
 
                     NavHost(
                         navController = navController,
-                        startDestination = MainScreen
+                        startDestination = AuthorizationScreen
                     ) {
                         composable<MainScreen> {
                             MainScreen(

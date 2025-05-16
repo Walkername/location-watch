@@ -97,6 +97,14 @@ class AuthViewModel(
         }
     }
 
+    fun resetTokens() {
+        tokenManager.clearTokens()
+    }
+
+    fun getAccessToken(): String? {
+        return tokenManager.getAccessToken()
+    }
+
     fun loadUserId() {
         userId = tokenManager.getUserId()
     }
