@@ -7,6 +7,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 import ru.locationwatch.mobile_client.network.AuthService
 import ru.locationwatch.mobile_client.network.TokenManager
 import ru.locationwatch.mobile_client.network.UserService
+import ru.locationwatch.mobile_client.network.ZoneService
 
 interface AppContainer {
 
@@ -15,6 +16,8 @@ interface AppContainer {
     val tokenManager: TokenManager
 
     val userRepository: UserRepository
+
+    val zoneRepository: ZoneRepository
 
 }
 
@@ -60,6 +63,14 @@ class DefaultAppContainer(private val context: Context) : AppContainer {
 
     override val userRepository: UserRepository by lazy {
         NetworkUserRepository(userService)
+    }
+
+    private val zoneService: ZoneService by lazy {
+        retrofit.create(ZoneService::class.java)
+    }
+
+    override val zoneRepository: ZoneRepository by lazy {
+        NetworkZoneRepository(zoneService)
     }
 
 }

@@ -14,40 +14,39 @@ import com.google.gson.Gson
 import kotlinx.coroutines.launch
 import retrofit2.HttpException
 import ru.locationwatch.mobile_client.AuthApplication
-import ru.locationwatch.mobile_client.data.UserRepository
+import ru.locationwatch.mobile_client.data.ZoneRepository
 import ru.locationwatch.mobile_client.network.models.PersonErrorResponse
-import ru.locationwatch.mobile_client.network.models.UserResponse
+import ru.locationwatch.mobile_client.network.models.ZoneResponse
 import java.io.IOException
 
-sealed interface UserUiState {
-    data class Success(val user: UserResponse) : UserUiState
-    data class Error(val message: String) : UserUiState
-    object Loading : UserUiState
+sealed interface ZoneUiState {
+    data class Success(val zones: List<ZoneResponse>) : ZoneUiState
+    data class Error(val message: String) : ZoneUiState
+    object Loading : ZoneUiState
 }
 
-class UserViewModel(
-    private val userRepository: UserRepository
+class ZoneViewModel(
+    private val zoneRepository: ZoneRepository
 ) : ViewModel() {
 
-    var userUiState: UserUiState by mutableStateOf(UserUiState.Loading)
+    var zoneUiState: ZoneUiState by mutableStateOf(ZoneUiState.Loading)
         private set
 
-    fun fetchUser(id: Int) {
+    fun fetchZones() {
         viewModelScope.launch {
-            userUiState = UserUiState.Loading
-            userUiState = try {
-                UserUiState.Success(userRepository.getUser(id))
+            zoneUiState = try {
+                ZoneUiState.Success(zoneRepository.getZones())
             } catch (e: IOException) {
-                e.message?.let { Log.e("getUser", it) }
-                UserUiState.Error("Network error")
+                e.message?.let { Log.e("getZone", it) }
+                ZoneUiState.Error("Network error")
             } catch (e: HttpException) {
-                Log.e("getUser", e.message())
+                Log.e("getZones", e.message())
                 val errorBody = e.response()?.errorBody()?.string()
                 val errorResponse = parseError(errorBody)
                 if (errorResponse?.message != null) {
-                    UserUiState.Error(errorResponse.message)
+                    ZoneUiState.Error(errorResponse.message)
                 } else {
-                    UserUiState.Error("Getting user error")
+                    ZoneUiState.Error("Getting zones error")
                 }
             }
         }
@@ -57,9 +56,9 @@ class UserViewModel(
         fun createFactory(application: Application): ViewModelProvider.Factory {
             return viewModelFactory {
                 initializer {
-                    val userRepository = (application as AuthApplication).container.userRepository
-                    UserViewModel(
-                        userRepository = userRepository
+                    val zoneRepository = (application as AuthApplication).container.zoneRepository
+                    ZoneViewModel(
+                        zoneRepository = zoneRepository
                     )
                 }
             }
