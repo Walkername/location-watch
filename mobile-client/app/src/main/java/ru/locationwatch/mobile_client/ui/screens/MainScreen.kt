@@ -1,9 +1,20 @@
 package ru.locationwatch.mobile_client.ui.screens
 
 import android.app.Application
+import android.graphics.Bitmap
+import android.graphics.ColorMatrix
+import android.graphics.ColorMatrixColorFilter
 import android.graphics.Paint
+import android.graphics.drawable.BitmapDrawable
 import android.util.Log
 import android.view.ViewGroup
+import android.view.ViewGroup.LayoutParams.MATCH_PARENT
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -23,6 +34,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -37,12 +49,16 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.core.content.ContextCompat
+import androidx.core.graphics.drawable.toBitmap
 import androidx.lifecycle.viewmodel.compose.viewModel
 import org.osmdroid.config.Configuration
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory
 import org.osmdroid.util.GeoPoint
 import org.osmdroid.views.MapView
+import org.osmdroid.views.overlay.Marker
 import org.osmdroid.views.overlay.Polygon
+import ru.locationwatch.mobile_client.R
 import ru.locationwatch.mobile_client.network.models.ZoneResponse
 import ru.locationwatch.mobile_client.ui.AuthViewModel
 import ru.locationwatch.mobile_client.ui.UserUiState
@@ -243,7 +259,7 @@ fun MainScreen(
         ) {
             Button(
                 modifier = Modifier
-                    .size(120.dp),
+                    .size(80.dp),
                 onClick = { startPublish() }
             ) {
                 Text("Start")
@@ -257,68 +273,96 @@ fun OpenStreetMap(
     modifier: Modifier = Modifier,
     initialPosition: GeoPoint = GeoPoint(59.937500, 30.308611),
     zoomLevel: Double = 12.0,
-    zones: List<ZoneResponse> = emptyList()
+    zones: List<ZoneResponse> = emptyList(),
+    latitude: MutableState<String> = mutableStateOf("59.937500"),
+    longitude: MutableState<String> = mutableStateOf("30.308611")
 ) {
     val context = LocalContext.current
+
     val mapView = remember {
         MapView(context).apply {
             id = android.R.id.content
             layoutParams = ViewGroup.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.MATCH_PARENT
+                MATCH_PARENT, MATCH_PARENT
             )
+            Configuration.getInstance().userAgentValue = context.packageName
+            setTileSource(TileSourceFactory.MAPNIK)
+            controller.setZoom(zoomLevel)
+            controller.setCenter(initialPosition)
         }
     }
 
-    LaunchedEffect(Unit) {
-        Configuration.getInstance().userAgentValue = context.packageName
+    val userMarker = remember {
+        Marker(mapView).apply {
+            icon = BitmapDrawable(context.resources, Bitmap.createScaledBitmap(
+                ContextCompat.getDrawable(context, R.drawable.gps_loc)!!.toBitmap(),
+                40, 40, true
+            ))
+            setOnMarkerClickListener { _, _ -> true }
+            mapView.overlays.add(this)
+        }
+    }
+
+    // 3) Pulsing brightness side‑effect (only invalidates the view)
+    val infiniteTransition = rememberInfiniteTransition()
+    val brightness by infiniteTransition.animateFloat(
+        1f, 1.5f,
+        infiniteRepeatable(tween(1000, easing = LinearEasing), RepeatMode.Reverse)
+    )
+    LaunchedEffect(brightness) {
+        userMarker.icon?.colorFilter = ColorMatrixColorFilter(
+            ColorMatrix().apply { setScale(brightness, brightness, brightness, 1f) }
+        )
+        mapView.postInvalidate()  // only redraws, doesn’t re‑run overlays logic
+    }
+
+    // 4) Update the user‑marker position only when lat/long really change
+    LaunchedEffect(latitude.value, longitude.value) {
+        latitude.value.toDoubleOrNull()?.let { lat ->
+            longitude.value.toDoubleOrNull()?.let { lon ->
+                val p = GeoPoint(lat, lon)
+                userMarker.position = p
+                mapView.controller.animateTo(p)
+            }
+        }
+    }
+
+    LaunchedEffect(zones) {
+        // remove any old zone polygons
+        mapView.overlays
+            .filterIsInstance<Polygon>()
+            .forEach { mapView.overlays.remove(it) }
+
+        // add new ones
+        zones.forEach { zone ->
+            zone.area?.let { cords ->
+                val poly = Polygon().apply {
+                    points = cords.map { GeoPoint(it.x!!, it.y!!) }
+                    fillPaint.apply {
+                        color = when (zone.typeName) {
+                            "NO_SPEED"   -> 0x80FF0000.toInt()
+                            "LESS_SPEED" -> 0x800048FF.toInt()
+                            else         -> Color.Transparent.toArgb()
+                        }
+                        style = Paint.Style.FILL
+                    }
+                    outlinePaint.apply {
+                        color = Color.Black.toArgb()
+                        strokeWidth = 2f
+                        style = Paint.Style.STROKE
+                    }
+                }
+                mapView.overlays.add(poly)
+            }
+        }
+        mapView.postInvalidate()
     }
 
     AndroidView(
-        factory = { mapView },
+        factory  = { mapView },
         modifier = modifier
             .clip(RoundedCornerShape(12.dp))
-            .border(2.dp, Color.Gray, RoundedCornerShape(12.dp)),
-        update = { view ->
-            view.setTileSource(TileSourceFactory.MAPNIK)
-            view.controller.setZoom(zoomLevel)
-            view.controller.setCenter(initialPosition)
-
-            // Clear existing overlays
-            view.overlays.clear()
-
-            // Add zone polygons
-            zones.forEach { zone ->
-                zone.area?.let { coordinates ->
-                    val polygon = Polygon().apply {
-                        points = coordinates.map {
-                            GeoPoint(it.x!!, it.y!!) // y = latitude, x = longitude
-                        }
-
-
-
-                        // Modern paint configuration
-                        fillPaint.apply {
-                            color = when (zone.typeName) {
-                                "NO_SPEED" -> Color(0x80FF0000).toArgb()
-                                "LESS_SPEED" -> Color(0x800048FF).toArgb()
-                                else -> Color.Transparent.toArgb()
-                            }
-                            style = Paint.Style.FILL
-                        }
-
-                        outlinePaint.apply {
-                            color = Color.Black.toArgb()
-                            strokeWidth = 2f
-                            style = Paint.Style.STROKE
-                        }
-                    }
-                    view.overlays.add(polygon)
-                }
-            }
-
-            view.invalidate() // Refresh map
-        }
+            .border(2.dp, Color.Gray, RoundedCornerShape(12.dp))
     )
 
     DisposableEffect(Unit) {
