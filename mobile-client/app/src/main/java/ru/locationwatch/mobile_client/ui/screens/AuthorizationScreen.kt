@@ -1,7 +1,6 @@
 package ru.locationwatch.mobile_client.ui.screens
 
 import android.app.Application
-import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -57,6 +56,12 @@ fun AuthorizationScreen(
     val app = LocalContext.current.applicationContext as Application
     val viewModelFactory = AuthViewModel.createFactory(app)
     val viewModel: AuthViewModel = viewModel(factory = viewModelFactory)
+
+    if (viewModel.getAccessToken() != null) {
+        LaunchedEffect(Unit) {
+            navigateToMain()
+        }
+    }
 
     Column(
         modifier = Modifier

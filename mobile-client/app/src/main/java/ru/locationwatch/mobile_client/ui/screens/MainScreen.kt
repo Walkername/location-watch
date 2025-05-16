@@ -81,6 +81,12 @@ fun MainScreen(
         }
 
         is UserUiState.Error -> {
+            if (userUiState.message == "Invalid JWT token") {
+                LaunchedEffect(Unit) {
+                    authViewModel.resetTokens()
+                    navigateToAuth()
+                }
+            }
         }
     }
 
@@ -103,7 +109,10 @@ fun MainScreen(
         Button(
             modifier = Modifier
                 .padding(start = 10.dp, top = 10.dp),
-            onClick = { navigateToAuth() }
+            onClick = {
+                navigateToAuth()
+                authViewModel.resetTokens()
+            }
         ) {
             Text(
                 text = "Exit"
@@ -177,6 +186,9 @@ fun MainScreen(
                             .fillMaxSize(),
                         initialPosition = GeoPoint(59.937500, 30.308611)
                     )
+                }
+                Row() {
+
                 }
             }
             Row(
