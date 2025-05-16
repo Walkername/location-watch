@@ -11,11 +11,10 @@ import org.springframework.web.bind.annotation.*;
 import ru.locationwatch.backend.dto.ZoneDTO;
 import ru.locationwatch.backend.models.Zone;
 import ru.locationwatch.backend.services.ZonesService;
-import ru.locationwatch.backend.util.ZoneErrorResponse;
+import ru.locationwatch.backend.util.ErrorResponse;
 import ru.locationwatch.backend.util.ZoneNotCreatedException;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/zones")
@@ -80,8 +79,8 @@ public class ZonesController {
     }
 
     @ExceptionHandler
-    private ResponseEntity<ZoneErrorResponse> handleException(ZoneNotCreatedException ex) {
-        ZoneErrorResponse response = new ZoneErrorResponse(
+    private ResponseEntity<ErrorResponse> handleException(ZoneNotCreatedException ex) {
+        ErrorResponse response = new ErrorResponse(
                 ex.getMessage(),
                 System.currentTimeMillis()
         );

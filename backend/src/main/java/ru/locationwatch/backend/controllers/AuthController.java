@@ -15,7 +15,7 @@ import ru.locationwatch.backend.services.AuthService;
 import ru.locationwatch.backend.services.PeopleService;
 import ru.locationwatch.backend.services.TokenService;
 import ru.locationwatch.backend.util.LoginException;
-import ru.locationwatch.backend.util.PersonErrorResponse;
+import ru.locationwatch.backend.util.ErrorResponse;
 import ru.locationwatch.backend.util.PersonValidator;
 import ru.locationwatch.backend.util.RegistrationException;
 
@@ -98,8 +98,8 @@ public class AuthController {
     }
 
     @ExceptionHandler
-    private ResponseEntity<PersonErrorResponse> handleException(RegistrationException ex) {
-        PersonErrorResponse response = new PersonErrorResponse(
+    private ResponseEntity<ErrorResponse> handleException(RegistrationException ex) {
+        ErrorResponse response = new ErrorResponse(
                 ex.getMessage(),
                 System.currentTimeMillis()
         );
@@ -108,8 +108,8 @@ public class AuthController {
     }
 
     @ExceptionHandler
-    private ResponseEntity<PersonErrorResponse> handleException(LoginException ex) {
-        PersonErrorResponse response = new PersonErrorResponse(
+    private ResponseEntity<ErrorResponse> handleException(LoginException ex) {
+        ErrorResponse response = new ErrorResponse(
                 ex.getMessage(),
                 System.currentTimeMillis()
         );

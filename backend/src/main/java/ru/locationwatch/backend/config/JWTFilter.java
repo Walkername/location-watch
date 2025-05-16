@@ -15,11 +15,9 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 import ru.locationwatch.backend.services.PersonDetailsService;
 import ru.locationwatch.backend.services.TokenService;
+import ru.locationwatch.backend.util.ErrorResponse;
 
 import java.io.IOException;
-import java.time.OffsetDateTime;
-import java.time.ZoneOffset;
-import java.util.LinkedHashMap;
 
 @Component
 public class JWTFilter extends OncePerRequestFilter {
@@ -77,20 +75,16 @@ public class JWTFilter extends OncePerRequestFilter {
     }
 
     private void setResponse(HttpServletResponse response, HttpServletRequest request, String message) throws IOException {
-        OffsetDateTime now = OffsetDateTime.now(ZoneOffset.UTC);
-
         response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
 
-        LinkedHashMap<String, String> responseMap = new LinkedHashMap<>();
-        responseMap.put("timestamp", now.toString());
-        responseMap.put("status", String.valueOf(response.getStatus()));
-        responseMap.put("error", message);
-        responseMap.put("path", request.getRequestURI());
+        ErrorResponse errorResponse = new ErrorResponse(
+                message, System.currentTimeMillis()
+        );
 
         ObjectMapper objectMapper = new ObjectMapper();
-        String jsonResponse = objectMapper.writeValueAsString(responseMap);
+        String jsonResponse = objectMapper.writeValueAsString(errorResponse);
 
         response.getWriter().write(jsonResponse);
         response.getWriter().close();
