@@ -1,6 +1,8 @@
 package ru.locationwatch.mobile_client.ui.screens
 
 import android.app.Application
+import android.graphics.Paint
+import android.util.Log
 import android.view.ViewGroup
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -29,6 +31,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -39,9 +42,13 @@ import org.osmdroid.config.Configuration
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory
 import org.osmdroid.util.GeoPoint
 import org.osmdroid.views.MapView
+import org.osmdroid.views.overlay.Polygon
+import ru.locationwatch.mobile_client.network.models.ZoneResponse
 import ru.locationwatch.mobile_client.ui.AuthViewModel
 import ru.locationwatch.mobile_client.ui.UserUiState
 import ru.locationwatch.mobile_client.ui.UserViewModel
+import ru.locationwatch.mobile_client.ui.ZoneUiState
+import ru.locationwatch.mobile_client.ui.ZoneViewModel
 import ru.locationwatch.mobile_client.ui.theme.MobileclientTheme
 
 @Composable
@@ -60,9 +67,20 @@ fun MainScreen(
     val authViewModelFactory = AuthViewModel.createFactory(app)
     val authViewModel: AuthViewModel = viewModel(factory = authViewModelFactory)
 
+    val zoneViewModelFactory = ZoneViewModel.createFactory(app)
+    val zoneViewModel: ZoneViewModel = viewModel(factory = zoneViewModelFactory)
+
+    val zoneUiState = zoneViewModel.zoneUiState
+
+    val zones = remember {
+        mutableStateOf<List<ZoneResponse>>(emptyList())
+    }
+
     LaunchedEffect(Unit) {
         authViewModel.loadUserId()
         userViewModel.fetchUser(authViewModel.userId!!)
+
+        zoneViewModel.fetchZones()
     }
 
     val userUiState = userViewModel.userUiState
@@ -76,7 +94,8 @@ fun MainScreen(
         }
 
         is UserUiState.Success -> {
-            val userName: String = if (userUiState.user.username != null) userUiState.user.username!! else ""
+            val userName: String =
+                if (userUiState.user.username != null) userUiState.user.username!! else ""
             username.value = userName
         }
 
@@ -87,6 +106,19 @@ fun MainScreen(
                     navigateToAuth()
                 }
             }
+        }
+    }
+
+    when (zoneUiState) {
+        is ZoneUiState.Loading -> {
+        }
+
+        is ZoneUiState.Success -> {
+            zones.value = zoneUiState.zones
+        }
+
+        is ZoneUiState.Error -> {
+            Log.e("zones", zoneUiState.message)
         }
     }
 
@@ -184,11 +216,9 @@ fun MainScreen(
                     OpenStreetMap(
                         modifier = Modifier
                             .fillMaxSize(),
-                        initialPosition = GeoPoint(59.937500, 30.308611)
+                        initialPosition = GeoPoint(59.937500, 30.308611),
+                        zones = zones.value
                     )
-                }
-                Row() {
-
                 }
             }
             Row(
@@ -226,16 +256,19 @@ fun MainScreen(
 fun OpenStreetMap(
     modifier: Modifier = Modifier,
     initialPosition: GeoPoint = GeoPoint(59.937500, 30.308611),
-    zoomLevel: Double = 12.0
+    zoomLevel: Double = 12.0,
+    zones: List<ZoneResponse> = emptyList()
 ) {
     val context = LocalContext.current
-    val mapView = remember { MapView(context).apply {
-        id = android.R.id.content
-        layoutParams = ViewGroup.LayoutParams(
-            ViewGroup.LayoutParams.MATCH_PARENT,
-            ViewGroup.LayoutParams.MATCH_PARENT
-        )
-    } }
+    val mapView = remember {
+        MapView(context).apply {
+            id = android.R.id.content
+            layoutParams = ViewGroup.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.MATCH_PARENT
+            )
+        }
+    }
 
     LaunchedEffect(Unit) {
         Configuration.getInstance().userAgentValue = context.packageName
@@ -250,6 +283,41 @@ fun OpenStreetMap(
             view.setTileSource(TileSourceFactory.MAPNIK)
             view.controller.setZoom(zoomLevel)
             view.controller.setCenter(initialPosition)
+
+            // Clear existing overlays
+            view.overlays.clear()
+
+            // Add zone polygons
+            zones.forEach { zone ->
+                zone.area?.let { coordinates ->
+                    val polygon = Polygon().apply {
+                        points = coordinates.map {
+                            GeoPoint(it.x!!, it.y!!) // y = latitude, x = longitude
+                        }
+
+
+
+                        // Modern paint configuration
+                        fillPaint.apply {
+                            color = when (zone.typeName) {
+                                "NO_SPEED" -> Color(0x80FF0000).toArgb()
+                                "LESS_SPEED" -> Color(0x800048FF).toArgb()
+                                else -> Color.Transparent.toArgb()
+                            }
+                            style = Paint.Style.FILL
+                        }
+
+                        outlinePaint.apply {
+                            color = Color.Black.toArgb()
+                            strokeWidth = 2f
+                            style = Paint.Style.STROKE
+                        }
+                    }
+                    view.overlays.add(polygon)
+                }
+            }
+
+            view.invalidate() // Refresh map
         }
     )
 
