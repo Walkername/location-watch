@@ -72,6 +72,12 @@ function MainPage() {
         setTypeName(e.target.value.toUpperCase());
     };
 
+    const [zoneName, setZoneName] = useState("")
+
+    const handleZoneName = (e) => {
+        setZoneName(e.target.value)
+    }
+
     const handleCreateZone = (e) => {
         e.preventDefault(); // Prevent default form submission
 
@@ -83,6 +89,7 @@ function MainPage() {
 
         // Prepare the form data according to required structure
         const formData = {
+            title: zoneName,
             typeName: typeName,
             area: positions.map(position => ({
                 x: position[0],  // Latitude
@@ -198,7 +205,8 @@ function MainPage() {
                             >
                                 <Popup>
                                     <div>
-                                        <h3>{zone.typeName} Zone</h3>
+                                        <h3>{zone.title}</h3>
+                                        <p>Type: {zone.typeName}</p>
                                         <p>Points: {zone.area.length}</p>
                                         <button
                                             onClick={() => handleDelete(zone.id)}
@@ -217,7 +225,15 @@ function MainPage() {
                         >Clear</button>
 
                         <form method="POST" onSubmit={handleCreateZone}>
-                            <label>Type name of zone:</label>
+                            <label>Type zone name (unique):</label>
+                            <br></br>
+                            <input
+                                type="text"
+                                name="zoneName"
+                                onChange={handleZoneName}
+                            />
+
+                            <label>Choose zone type:</label>
                             <br></br>
                             <input
                                 type="radio"
@@ -243,13 +259,13 @@ function MainPage() {
 
 
                         <h2>All zones:</h2>
-                        <ul>
+                        <ol>
                             {
                                 zones.map((zone, index) => (
-                                    <li key={index}>{zone.typeName}</li>
+                                    <li key={index}>{zone.title}: {zone.typeName}</li>
                                 ))
                             }
-                        </ul>
+                        </ol>
                     </div>
                 </div>
             </div>
