@@ -12,9 +12,9 @@ h1 {
 
 .page-content {
     display: flex;
-    justify-content: space-between;
+    justify-content: center;
     background-color: #f0f0f0;
-    width: 1400px;
+    width: auto;
     padding-left: 200px;
     padding-right: 200px;
     padding-top: 10px;
@@ -24,6 +24,6 @@ h1 {
 
 .leaflet-container {
     height: 80vh;
-    width: 90%;
+    width: 1200px;
     border-radius: 2rem;
 }
