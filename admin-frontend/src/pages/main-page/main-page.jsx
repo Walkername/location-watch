@@ -32,12 +32,12 @@ function MainPage() {
         ? [...positions, positions[0]]
         : positions;
 
-    const createNumberedIcon = (number) => {
+    const createNumberedIcon = (number, type) => {
         return new DivIcon({
             className: 'custom-marker',
             html: `
                     <div style="
-                        background-color: red;
+                        background-color: ${getZoneColor(type)};
                         border-radius: 50%;
                         width: 24px;
                         height: 24px;
@@ -164,9 +164,9 @@ function MainPage() {
                         {/* Render markers */}
                         {positions.map((position, index) => (
                             <Marker
-                                key={index}
+                                key={`marker-${position[0]}-${position[1]}-${index}`}
                                 position={position}
-                                icon={createNumberedIcon(index + 1)}
+                                icon={createNumberedIcon(index + 1, typeName)}
                             >
                                 <Popup>
                                     Point {index + 1}<br />
@@ -197,9 +197,9 @@ function MainPage() {
                         )}
 
                         {/* Display existing zones as polygons */}
-                        {zones.map((zone, index) => (
+                        {zones.map((zone) => (
                             <Polygon
-                                key={index}
+                                key={zone.id}
                                 positions={zone.area.map(point => [point.x, point.y])}
                                 color={getZoneColor(zone.typeName)}
                             >
@@ -224,6 +224,9 @@ function MainPage() {
                             onClick={() => setPositions([])}
                         >Clear</button>
 
+                        <br></br>
+                        <br></br>
+
                         <form method="POST" onSubmit={handleCreateZone}>
                             <label>Type zone name (unique):</label>
                             <br></br>
@@ -232,6 +235,7 @@ function MainPage() {
                                 name="zoneName"
                                 onChange={handleZoneName}
                             />
+                            <br></br>
 
                             <label>Choose zone type:</label>
                             <br></br>
