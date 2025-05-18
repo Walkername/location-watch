@@ -1,6 +1,6 @@
 
 export const getZones = async () => {
-    const response = await fetch(`http://localhost:8080/zones`);
+    const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/zones`);
     if (!response.ok) {
         throw new Error('Failed to get zones');
     }
@@ -8,7 +8,7 @@ export const getZones = async () => {
 }
 
 export const createZone = async (zoneData) => {
-    const response = await fetch(`http://localhost:8080/zones/add`, {
+    const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/zones/add`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json"
@@ -22,7 +22,7 @@ export const createZone = async (zoneData) => {
 }
 
 export const deleteZone = async (id) => {
-    const response = await fetch(`http://localhost:8080/zones/delete/${id}`, {
+    const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/zones/delete/${id}`, {
         method: "DELETE"
     });
     if (!response.ok) {
