@@ -41,9 +41,9 @@ h1 {
     border: 1px solid;
     color: black;
     background-color: white;
-    display: inline-block; /* Make the element wrap around the text */
-    padding: 6px 10px; /* Add padding for spacing around the text */
-    transition: all 0.5s ease; /* Smooth transition for hover effects */
+    display: inline-block;
+    padding: 6px 10px;
+    transition: all 0.5s ease;
 }
 
 .exit-button:hover {
@@ -51,4 +51,44 @@ h1 {
     border: 1px solid;
     border-radius: 20px;
     text-decoration: underline;
+}
+
+.forbidden-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background-color: #f8f9fa;
+}
+
+.forbidden-content {
+  text-align: center;
+  padding: 2rem;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.forbidden-text {
+  font-size: 1.2rem;
+  margin: 1rem 0;
+  color: #dc3545;
+}
+
+.forbidden-actions {
+  margin-top: 1.5rem;
+}
+
+.forbidden-button {
+  margin: 0 0.5rem;
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 4px;
+  background-color: #007bff;
+  color: white;
+  cursor: pointer;
+}
+
+.forbidden-button:hover {
+  background-color: #0056b3;
 }
