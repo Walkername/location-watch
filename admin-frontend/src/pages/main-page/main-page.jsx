@@ -4,6 +4,7 @@ import { MapContainer, Marker, Polygon, Polyline, Popup, TileLayer, useMapEvents
 import { createZone, deleteZone, getZones } from "../../api/zones-api";
 import FunctionBar from "../../components/function-bar/function-bar";
 import MapZones from "../../components/map-zones/map-zones";
+import NavigationBar from "../../components/navigation-bar/navigation-bar";
 
 
 function MainPage() {
@@ -109,7 +110,7 @@ function MainPage() {
 
     return (
         <>
-            <h1>Admin Interface</h1>
+            <NavigationBar title="Admin Interface" />
 
             <div className="page-content-container">
                 <div className="page-content">

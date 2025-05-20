@@ -22,9 +22,8 @@ function LoginPage() {
 
         login(formData)
             .then((data) => {
-                console.log("Login successfully:", data);
                 setErrorMessage("");
-                localStorage.setItem("access_token:", data.accessToken);
+                localStorage.setItem("accessToken", data.accessToken);
                 navigate("/");
             })
             .catch((error) => {
