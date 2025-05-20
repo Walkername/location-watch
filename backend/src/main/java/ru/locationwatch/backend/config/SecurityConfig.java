@@ -31,9 +31,8 @@ public class SecurityConfig {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
-
-                        // Need to specify that "/zones/add" should be enabled only for the ADMIN role
-                        .requestMatchers("/auth/login", "/auth/register", "/zones/add", "/zones", "/zones/delete/{id}").permitAll()
+                        .requestMatchers("/zones/add", "/zones/delete/{id}").hasRole("ADMIN")
+                        .requestMatchers("/auth/login", "/auth/register", "/zones").permitAll()
                                 .anyRequest().hasAnyRole("USER", "ADMIN")
                 )
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
