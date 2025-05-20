@@ -1,6 +1,5 @@
 
 export const login = async (formData) => {
-    console.log(process.env.REACT_APP_USER_SERVICE_URL);
     const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/auth/login`, {
         method: "POST",
         headers: {

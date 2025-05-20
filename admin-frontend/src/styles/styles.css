@@ -27,3 +27,28 @@ h1 {
     width: 1200px;
     border-radius: 2rem;
 }
+
+.nav-bar {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 50px;
+}
+
+.exit-button {
+    height: 100%;
+    font-size: 15px;
+    border: 1px solid;
+    color: black;
+    background-color: white;
+    display: inline-block; /* Make the element wrap around the text */
+    padding: 6px 10px; /* Add padding for spacing around the text */
+    transition: all 0.5s ease; /* Smooth transition for hover effects */
+}
+
+.exit-button:hover {
+    cursor: pointer;
+    border: 1px solid;
+    border-radius: 20px;
+    text-decoration: underline;
+}
