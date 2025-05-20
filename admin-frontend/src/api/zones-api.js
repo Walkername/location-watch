@@ -8,10 +8,12 @@ export const getZones = async () => {
 }
 
 export const createZone = async (zoneData) => {
+    const token = localStorage.getItem("accessToken");
     const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/zones/add`, {
         method: "POST",
         headers: {
-            "Content-Type": "application/json"
+            "Content-Type": "application/json",
+            "Authorization": "Bearer " + token
         },
         body: JSON.stringify(zoneData)
     });
@@ -22,8 +24,12 @@ export const createZone = async (zoneData) => {
 }
 
 export const deleteZone = async (id) => {
+    const token = localStorage.getItem("accessToken");
     const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/zones/delete/${id}`, {
-        method: "DELETE"
+        method: "DELETE",
+        headers: {
+            "Authorization": "Bearer " + token
+        }
     });
     if (!response.ok) {
         throw new Error('Failed to delete the zone');
