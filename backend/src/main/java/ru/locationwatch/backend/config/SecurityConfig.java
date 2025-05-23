@@ -35,14 +35,14 @@ public class SecurityConfig {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/zones/add", "/zones/delete/{id}").hasRole("ADMIN")
+                        .requestMatchers("/zones/add", "/zones/delete/{id}", "/topic/violations").hasRole("ADMIN")
                         .requestMatchers("/auth/login", "/auth/register", "/zones").permitAll()
-                                .anyRequest().hasAnyRole("USER", "ADMIN")
+                        .anyRequest().hasAnyRole("USER", "ADMIN")
                 )
-                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-                .sessionManagement(session -> {
-                    session.sessionCreationPolicy(SessionCreationPolicy.STATELESS);
-                });
+                .cors(cors ->
+                        cors.configurationSource(corsConfigurationSource()))
+                .sessionManagement(session ->
+                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 
         http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
