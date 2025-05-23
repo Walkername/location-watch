@@ -5,9 +5,12 @@ import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
+import ru.locationwatch.backend.dto.ViolationMessage;
 import ru.locationwatch.backend.models.Coordinate;
 import ru.locationwatch.backend.models.Zone;
 
+import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -24,6 +27,8 @@ public class MqttMessageService {
 
     @ServiceActivator(inputChannel = "mqttInputChannel")
     public void handleMessage(Message<?> message) {
+        List<ViolationMessage> violations = new ArrayList<>();
+
         String payload = message.getPayload().toString();
         String[] split = payload.split(",");
         double latitude = Double.parseDouble(split[0].split(":")[1]);
@@ -49,6 +54,15 @@ public class MqttMessageService {
                     intersections++;
                 }
             }
+
+            if (intersections % 2 == 1) {
+                ViolationMessage violationMessage = new ViolationMessage(
+                        0,
+                        zone.getTitle(),
+                        Instant.now()
+                );
+                violations.add(violationMessage);
+            }
         }
 
         // Location is in restricted zone:
@@ -56,9 +70,18 @@ public class MqttMessageService {
 
         // Send notification that user is in restricted zone
         // TODO: send only to specific user
-        if (intersections % 2 == 1) {
-            messagingTemplate.convertAndSend("/topic/notifications", "Notification from checking");
-        }
+//        if (intersections % 2 == 1) {
+//            messagingTemplate.convertAndSend("/topic/violations", "Notification from checking");
+//        }
+
+        // it's only example to send
+        ViolationMessage violationMessage = new ViolationMessage(
+                0,
+                "walkername",
+                Instant.now()
+        );
+        violations.add(violationMessage);
+        messagingTemplate.convertAndSend("/topic/violations", violations);
     }
 
     private boolean rayCrossesSegment(Coordinate point, Coordinate current, Coordinate next) {
