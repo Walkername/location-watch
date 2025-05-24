@@ -1,6 +1,5 @@
 import { Client } from "@stomp/stompjs";
 import { useEffect, useState } from "react";
-import SockJS from "sockjs-client";
 import validateDate from "../../utils/date-validation/date-validation";
 
 function ViolatorsList() {
@@ -11,7 +10,10 @@ function ViolatorsList() {
 
     useEffect(() => {
         const stompClient = new Client({
-            webSocketFactory: () => new SockJS('http://localhost:8080/ws'),
+            brokerURL: 'ws://localhost:8080/ws',
+            connectHeaders: {
+                Authorization: `Bearer ${accessToken}`
+            },
             reconnectDelay: 5000,
             debug: (str) => console.log(str),
         });
