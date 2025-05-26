@@ -1,14 +1,17 @@
 package ru.locationwatch.backend.services;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
+import ru.locationwatch.backend.dto.GPSDataRequest;
 import ru.locationwatch.backend.dto.ViolationMessage;
 import ru.locationwatch.backend.models.Coordinate;
 import ru.locationwatch.backend.models.Zone;
 
+import java.io.IOException;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -29,12 +32,20 @@ public class MqttMessageService {
     public void handleMessage(Message<?> message) {
         List<ViolationMessage> violations = new ArrayList<>();
 
-        String payload = message.getPayload().toString();
-        String[] split = payload.split(",");
-        double latitude = Double.parseDouble(split[0].split(":")[1]);
-        double longitude = Double.parseDouble(split[1].split(":")[1]);
-        //double speed = Double.parseDouble(split[2].split(":")[1]);
-        Coordinate point = new Coordinate(latitude, longitude);
+        GPSDataRequest gpsData = new GPSDataRequest();
+        try {
+            String json = message.getPayload().toString();
+            gpsData = new ObjectMapper().readValue(json, GPSDataRequest.class);
+        } catch (IOException e) {
+            System.err.println(e.getMessage());
+        }
+
+        System.out.println(gpsData);
+
+        Coordinate point = new Coordinate(
+                gpsData.getLatitude(),
+                gpsData.getLongitude()
+        );
 
         // This method is ineffective
         // Send request to DB each gps data
