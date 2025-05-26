@@ -89,9 +89,9 @@ import kotlin.math.roundToInt
 @Composable
 fun MainScreen(
     statusText: MutableState<String>,
-    latitude: MutableState<String>,
-    longitude: MutableState<String>,
-    speed: MutableState<String>,
+    latitude: MutableState<Double?>,
+    longitude: MutableState<Double?>,
+    speed: MutableState<Double?>,
     startPublish: () -> Unit,
     navigateToAuth: () -> Unit
 ) {
@@ -229,8 +229,8 @@ fun OpenStreetMap(
     // latitude and longitude are assigned manually to check it in virtual device
     // but for production you need to remove these assignments
     // and pass them by your gps location (in MainScreen pass arguments)
-    latitude: MutableState<String> = mutableStateOf("59.937500"),
-    longitude: MutableState<String> = mutableStateOf("30.308611"),
+    latitude: MutableState<Double?> = mutableStateOf(59.937500),
+    longitude: MutableState<Double?> = mutableStateOf(30.308611),
     onZoneSelected: (ZoneResponse) -> Unit
 ) {
     val context = LocalContext.current
@@ -276,8 +276,8 @@ fun OpenStreetMap(
 
     // 4) Update the user‑marker position only when lat/long really change
     LaunchedEffect(latitude.value, longitude.value) {
-        latitude.value.toDoubleOrNull()?.let { lat ->
-            longitude.value.toDoubleOrNull()?.let { lon ->
+        latitude.value?.let { lat ->
+            longitude.value?.let { lon ->
                 val p = GeoPoint(lat, lon)
                 userMarker.position = p
                 mapView.controller.animateTo(p)
@@ -466,8 +466,8 @@ fun ZoneBottomSheet(
 fun MapContainer(
     modifier: Modifier,
     zones: List<ZoneResponse>,
-    latitude: MutableState<String>,
-    longitude: MutableState<String>,
+    latitude: MutableState<Double?>,
+    longitude: MutableState<Double?>,
     onZoneSelected: (ZoneResponse) -> Unit
 ) {
     Column(

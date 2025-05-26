@@ -28,6 +28,7 @@ import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
 import info.mqtt.android.service.MqttAndroidClient
+import kotlinx.serialization.json.Json
 import org.eclipse.paho.client.mqttv3.IMqttActionListener
 import org.eclipse.paho.client.mqttv3.IMqttToken
 import org.eclipse.paho.client.mqttv3.MqttClient
@@ -35,6 +36,7 @@ import org.eclipse.paho.client.mqttv3.MqttConnectOptions
 import org.eclipse.paho.client.mqttv3.MqttException
 import org.eclipse.paho.client.mqttv3.MqttMessage
 import ru.locationwatch.mobile_client.config.AppConfig
+import ru.locationwatch.mobile_client.network.models.GPSDataRequest
 import ru.locationwatch.mobile_client.ui.theme.MobileclientTheme
 import ru.locationwatch.mobile_client.ui.screens.AuthorizationScreen
 import ru.locationwatch.mobile_client.ui.screens.MainScreen
@@ -54,12 +56,12 @@ class MainActivity : ComponentActivity() {
 
     private var fusedLocationProviderClient: FusedLocationProviderClient? = null
     private lateinit var locationRequest: LocationRequest
-    private lateinit var locationCallback : LocationCallback
+    private lateinit var locationCallback: LocationCallback
     private var requestingLocationUpdates = true
 
-    private val latitude = mutableStateOf("")
-    private val longitude = mutableStateOf("")
-    private val speed = mutableStateOf("")
+    private val latitude = mutableStateOf<Double?>(null)
+    private val longitude = mutableStateOf<Double?>(null)
+    private val speed = mutableStateOf<Double?>(null)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -80,9 +82,9 @@ class MainActivity : ComponentActivity() {
         locationCallback = object : LocationCallback() {
             override fun onLocationResult(p0: LocationResult) {
                 for (location in p0.locations) {
-                    latitude.value = location.latitude.toString()
-                    longitude.value = location.longitude.toString()
-                    speed.value = location.speed.toString()
+                    latitude.value = location.latitude
+                    longitude.value = location.longitude
+                    speed.value = location.speed.toDouble()
                 }
             }
         }
@@ -191,9 +193,7 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun stopLocationUpdates() {
-        fusedLocationProviderClient?.let {
-            it.removeLocationUpdates(locationCallback)
-        }
+        fusedLocationProviderClient?.removeLocationUpdates(locationCallback)
     }
 
     private fun updateGPS() {
@@ -202,9 +202,9 @@ class MainActivity : ComponentActivity() {
             ) == PackageManager.PERMISSION_GRANTED
         ) {
             fusedLocationProviderClient?.lastLocation?.addOnSuccessListener {
-                latitude.value = it.latitude.toString()
-                longitude.value = it.longitude.toString()
-                speed.value = it.speed.toString()
+                latitude.value = it.latitude
+                longitude.value = it.longitude
+                speed.value = it.speed.toDouble()
             }
         } else {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -256,10 +256,28 @@ class MainActivity : ComponentActivity() {
     }
 
     fun publish(client: MqttAndroidClient) {
+        // if one of gps data is null
+        // then data will not be send to backend
+        if (
+            latitude.value == null
+            || longitude.value == null
+            || speed.value == null
+        ) {
+            return
+        }
+
         val publishTopic = "\$devices/$userId/$mqttTopic"
-        val message = "latitude: ${latitude.value}, longitude: ${longitude.value}, speed: ${speed.value}"
+
+        val gpsData = GPSDataRequest(
+            0,
+            latitude.value,
+            longitude.value,
+            speed.value
+        )
+        val jsonString = Json.encodeToString(gpsData)
+
         try {
-            client.publish(publishTopic, MqttMessage(message.toByteArray()))
+            client.publish(publishTopic, MqttMessage(jsonString.toByteArray()))
         } catch (e: MqttException) {
             e.printStackTrace()
         }
