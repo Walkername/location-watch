@@ -38,6 +38,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import ru.locationwatch.mobile_client.ui.LoginUiState
 import ru.locationwatch.mobile_client.ui.AuthViewModel
+import ru.locationwatch.mobile_client.ui.NotificationViewModel
 import ru.locationwatch.mobile_client.ui.RegisterUiState
 import ru.locationwatch.mobile_client.ui.theme.MobileclientTheme
 import java.util.Date
@@ -202,18 +203,22 @@ fun SignUpForm(
                         errorMessage.value = "Username should be greater than 5 characters"
                         return@Button
                     }
+
                     username.value.length > 20 -> {
                         errorMessage.value = "Username should be less than 20 characters"
                         return@Button
                     }
+
                     password.value.length < 5 -> {
                         errorMessage.value = "Password should be greater than 5 characters"
                         return@Button
                     }
+
                     password.value.length > 50 -> {
                         errorMessage.value = "Password should be less that 50 characters"
                         return@Button
                     }
+
                     password.value != passwordConfirmation.value -> {
                         errorMessage.value = "Password are not equal"
                         return@Button
@@ -241,6 +246,9 @@ fun SignInForm(
     authType: MutableState<Boolean>
 ) {
     val uiState: LoginUiState = viewModel.loginUiState
+    val app = LocalContext.current.applicationContext as Application
+    val viewModelFactory = NotificationViewModel.createFactory(app)
+    val notificationViewModel: NotificationViewModel = viewModel(factory = viewModelFactory)
 
     val username = remember {
         mutableStateOf("")
@@ -276,6 +284,19 @@ fun SignInForm(
             is LoginUiState.Success -> {
                 LaunchedEffect(uiState) {
                     navigateToMain()
+
+                    val (token, isSent) = notificationViewModel.getTokenAndStatus()
+
+                    if (!isSent && token != null) {
+                        try {
+                            notificationViewModel.sendFirebaseToken(token)
+                            notificationViewModel.markTokenAsSent()
+                            Log.d("fb-token", "Token sent to server")
+                        } catch (e: Exception) {
+                            Log.e("fb-token", "Failed to send token", e)
+                        }
+                    }
+
                     viewModel.resetLoginState()
                 }
             }
@@ -297,14 +318,17 @@ fun SignInForm(
                         errorMessage.value = "Username should be greater than 5 characters"
                         return@Button
                     }
+
                     username.value.length > 20 -> {
                         errorMessage.value = "Username should be less than 20 characters"
                         return@Button
                     }
+
                     password.value.length < 5 -> {
                         errorMessage.value = "Password should be greater than 5 characters"
                         return@Button
                     }
+
                     password.value.length > 50 -> {
                         errorMessage.value = "Password should be less that 50 characters"
                         return@Button

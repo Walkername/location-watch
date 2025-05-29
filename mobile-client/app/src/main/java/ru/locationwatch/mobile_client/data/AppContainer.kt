@@ -5,6 +5,8 @@ import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import ru.locationwatch.mobile_client.network.AuthService
+import ru.locationwatch.mobile_client.network.FCMTokenManager
+import ru.locationwatch.mobile_client.network.NotificationService
 import ru.locationwatch.mobile_client.network.TokenManager
 import ru.locationwatch.mobile_client.network.UserService
 import ru.locationwatch.mobile_client.network.ZoneService
@@ -15,9 +17,13 @@ interface AppContainer {
 
     val tokenManager: TokenManager
 
+    val fcmTokenManager: FCMTokenManager
+
     val userRepository: UserRepository
 
     val zoneRepository: ZoneRepository
+
+    val notificationRepository: NotificationRepository
 
 }
 
@@ -57,6 +63,10 @@ class DefaultAppContainer(private val context: Context) : AppContainer {
         TokenManager(context)
     }
 
+    override val fcmTokenManager: FCMTokenManager by lazy {
+        FCMTokenManager(context)
+    }
+
     private val userService: UserService by lazy {
         retrofit.create(UserService::class.java)
     }
@@ -71,6 +81,14 @@ class DefaultAppContainer(private val context: Context) : AppContainer {
 
     override val zoneRepository: ZoneRepository by lazy {
         NetworkZoneRepository(zoneService)
+    }
+
+    private val notificationService: NotificationService by lazy {
+        retrofit.create(NotificationService::class.java)
+    }
+
+    override val notificationRepository: NotificationRepository by lazy {
+        NetworkNotificationRepository(notificationService)
     }
 
 }
