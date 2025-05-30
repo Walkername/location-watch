@@ -40,6 +40,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -94,6 +95,8 @@ import kotlin.math.roundToInt
 
 @Composable
 fun MainScreen(
+    notificationData: MutableState<Pair<String?, String?>?>,
+    onNotificationShown: () -> Unit,
     statusText: MutableState<String>,
     latitude: MutableState<Double?>,
     longitude: MutableState<Double?>,
@@ -102,6 +105,20 @@ fun MainScreen(
     navigateToAuth: () -> Unit
 ) {
     NotificationPermissionHandler()
+
+    // Show notification dialog if data exists
+    notificationData.value?.let { (title, body) ->
+        AlertDialog(
+            onDismissRequest = onNotificationShown,
+            title = { Text(title ?: "Notification") },
+            text = { Text(body ?: "No message content") },
+            confirmButton = {
+                Button(onClick = onNotificationShown) {
+                    Text("OK")
+                }
+            }
+        )
+    }
 
     var selectedZone by remember {
         mutableStateOf<ZoneResponse?>(null)
