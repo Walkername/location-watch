@@ -5,9 +5,15 @@ import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
 import ru.locationwatch.mobile_client.AuthApplication
 import java.util.Date
+
+object NotificationManager {
+    // Shared flow for notifications
+    val notificationFlow = MutableSharedFlow<Pair<String?, String?>>()
+}
 
 class PushNotificationService() : FirebaseMessagingService() {
 
@@ -49,7 +55,13 @@ class PushNotificationService() : FirebaseMessagingService() {
     }
 
     override fun onMessageReceived(remoteMessage: RemoteMessage) {
+        val title = remoteMessage.notification?.title
+        val body = remoteMessage.notification?.body
 
+        // Emit notification to the shared flow
+        CoroutineScope(Dispatchers.Main).launch {
+            NotificationManager.notificationFlow.emit(Pair(title, body))
+        }
     }
 
 }

@@ -13,11 +13,13 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.core.app.ActivityCompat
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -28,6 +30,7 @@ import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
 import info.mqtt.android.service.MqttAndroidClient
+import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 import org.eclipse.paho.client.mqttv3.IMqttActionListener
 import org.eclipse.paho.client.mqttv3.IMqttToken
@@ -36,6 +39,7 @@ import org.eclipse.paho.client.mqttv3.MqttConnectOptions
 import org.eclipse.paho.client.mqttv3.MqttException
 import org.eclipse.paho.client.mqttv3.MqttMessage
 import ru.locationwatch.mobile_client.config.AppConfig
+import ru.locationwatch.mobile_client.network.NotificationManager
 import ru.locationwatch.mobile_client.network.models.GPSDataRequest
 import ru.locationwatch.mobile_client.ui.theme.MobileclientTheme
 import ru.locationwatch.mobile_client.ui.screens.AuthorizationScreen
@@ -91,6 +95,17 @@ class MainActivity : ComponentActivity() {
 
         enableEdgeToEdge()
         setContent {
+            val notificationData = remember { mutableStateOf<Pair<String?, String?>?>(null) }
+
+            // Collect notifications from the shared flow
+            LaunchedEffect(Unit) {
+                lifecycleScope.launch {
+                    NotificationManager.notificationFlow.collect { data ->
+                        notificationData.value = data
+                    }
+                }
+            }
+
             MobileclientTheme {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
@@ -110,6 +125,8 @@ class MainActivity : ComponentActivity() {
                     ) {
                         composable<MainScreen> {
                             MainScreen(
+                                notificationData = notificationData,
+                                onNotificationShown = { notificationData.value = null },
                                 statusText = statusText,
                                 latitude = latitude,
                                 longitude = longitude,
