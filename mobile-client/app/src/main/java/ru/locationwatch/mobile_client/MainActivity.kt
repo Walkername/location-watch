@@ -1,6 +1,7 @@
 package ru.locationwatch.mobile_client
 
 import android.Manifest
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
@@ -67,9 +68,13 @@ class MainActivity : ComponentActivity() {
     private val longitude = mutableStateOf<Double?>(null)
     private val speed = mutableStateOf<Double?>(null)
 
+    private val notificationData = mutableStateOf<Pair<String?, String?>?>(null)
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         appConfig = AppConfig(applicationContext)
+
+        handleIntent(intent) // Check initial intent
 
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this)
 
@@ -95,8 +100,6 @@ class MainActivity : ComponentActivity() {
 
         enableEdgeToEdge()
         setContent {
-            val notificationData = remember { mutableStateOf<Pair<String?, String?>?>(null) }
-
             // Collect notifications from the shared flow
             LaunchedEffect(Unit) {
                 lifecycleScope.launch {
@@ -142,6 +145,26 @@ class MainActivity : ComponentActivity() {
                         }
                     }
                 }
+            }
+        }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        handleIntent(intent) // Handle new intent if app was already open
+    }
+
+    private fun handleIntent(intent: Intent) {
+        // Check if launched from notification
+        if (intent.action == "OPEN_DETAILS_ACTION" || intent.data?.scheme == "myapp") {
+            notificationData.value = Pair(
+                intent.getStringExtra("ntf_title"),
+                intent.getStringExtra("ntf_body")
+            )
+
+            // Clear intent to prevent duplicate handling
+            this.intent = Intent(Intent.ACTION_MAIN).apply {
+                addCategory(Intent.CATEGORY_LAUNCHER)
             }
         }
     }
