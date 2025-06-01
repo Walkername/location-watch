@@ -16,4 +16,9 @@ interface NotificationService {
         @Body firebaseToken: FirebaseTokenRequest
     ) : Response<Unit>
 
+    @POST("/notifications/delete-token")
+    suspend fun deleteFirebaseToken(
+        @Body firebaseToken: FirebaseTokenRequest
+    ) : Response<Unit>
+
 }

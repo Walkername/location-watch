@@ -290,7 +290,7 @@ fun SignInForm(
                     if (!isSent && token != null) {
                         try {
                             notificationViewModel.sendFirebaseToken(token)
-                            notificationViewModel.markTokenAsSent()
+                            notificationViewModel.markTokenStatus(true)
                             Log.d("fb-token", "Token sent to server")
                         } catch (e: Exception) {
                             Log.e("fb-token", "Failed to send token", e)

@@ -56,7 +56,7 @@ class PushNotificationService() : FirebaseMessagingService() {
             CoroutineScope(Dispatchers.IO).launch {
                 val notificationRepository = (application as AuthApplication).container.notificationRepository
                 notificationRepository.sendFirebaseToken(token)
-                fcmTokenManager.markTokenAsSent()
+                fcmTokenManager.markTokenStatus(true)
             }
         } catch (e: Exception) {
             Log.e("fb-token", "Auto-send failed", e)
