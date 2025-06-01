@@ -8,6 +8,8 @@ interface NotificationRepository {
 
     suspend fun sendFirebaseToken(token: String)
 
+    suspend fun deleteFirebaseToken(token: String)
+
 }
 
 class NetworkNotificationRepository(
@@ -16,6 +18,11 @@ class NetworkNotificationRepository(
 
     override suspend fun sendFirebaseToken(token: String) {
         val response = notificationService.sendFirebaseToken(FirebaseTokenRequest(token))
+        return response.body() ?: throw HttpException(response)
+    }
+
+    override suspend fun deleteFirebaseToken(token: String) {
+        val response = notificationService.deleteFirebaseToken(FirebaseTokenRequest(token))
         return response.body() ?: throw HttpException(response)
     }
 

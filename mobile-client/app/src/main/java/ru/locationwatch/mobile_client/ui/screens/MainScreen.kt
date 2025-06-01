@@ -87,6 +87,8 @@ import org.osmdroid.views.overlay.Polygon
 import ru.locationwatch.mobile_client.R
 import ru.locationwatch.mobile_client.network.models.ZoneResponse
 import ru.locationwatch.mobile_client.ui.AuthViewModel
+import ru.locationwatch.mobile_client.ui.NotificationViewModel
+import ru.locationwatch.mobile_client.ui.TokenUiState
 import ru.locationwatch.mobile_client.ui.UserUiState
 import ru.locationwatch.mobile_client.ui.UserViewModel
 import ru.locationwatch.mobile_client.ui.ZoneUiState
@@ -130,6 +132,9 @@ fun MainScreen(
 
     val authViewModelFactory = AuthViewModel.createFactory(app)
     val authViewModel: AuthViewModel = viewModel(factory = authViewModelFactory)
+
+    val notificationViewModelFactory = NotificationViewModel.createFactory(app)
+    val notificationViewModel: NotificationViewModel = viewModel(factory = notificationViewModelFactory)
 
     val zoneViewModelFactory = ZoneViewModel.createFactory(app)
     val zoneViewModel: ZoneViewModel = viewModel(factory = zoneViewModelFactory)
@@ -204,6 +209,7 @@ fun MainScreen(
             modifier = Modifier,
             navigateToAuth = { navigateToAuth() },
             authViewModel = authViewModel,
+            notificationViewModel = notificationViewModel,
             username = username
         )
         Box(
@@ -547,8 +553,26 @@ fun NavigationBar(
     modifier: Modifier,
     navigateToAuth: () -> Unit,
     authViewModel: AuthViewModel,
+    notificationViewModel: NotificationViewModel,
     username: MutableState<String>
 ) {
+    when (val tokenUiState = notificationViewModel.tokenUiState) {
+        is TokenUiState.Loading -> {
+        }
+
+        is TokenUiState.Success -> {
+            LaunchedEffect(tokenUiState) {
+                notificationViewModel.markTokenStatus(false)
+                authViewModel.resetTokens()
+                navigateToAuth()
+            }
+        }
+
+        is TokenUiState.Error -> {
+            return
+        }
+    }
+
     TopAppBar(
         modifier = modifier,
         title = {
@@ -560,8 +584,11 @@ fun NavigationBar(
         },
         actions = {
             IconButton({
-                authViewModel.resetTokens()
-                navigateToAuth()
+                // Send request to backend to Delete firebase token in DB
+                val firebaseToken = notificationViewModel.getTokenAndStatus().first
+                firebaseToken?.let {
+                    notificationViewModel.deleteFirebaseToken(it)
+                }
             }) {
                 Icon(
                     Icons.AutoMirrored.Filled.ExitToApp,

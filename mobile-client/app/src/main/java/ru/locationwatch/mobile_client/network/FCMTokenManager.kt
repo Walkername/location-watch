@@ -18,8 +18,8 @@ class FCMTokenManager(context: Context) {
 
     fun isTokenSent(): Boolean = prefs.getBoolean("is_token_sent", false)
 
-    fun markTokenAsSent() {
-        prefs.edit().putBoolean("is_token_sent", true).apply()
+    fun markTokenStatus(status: Boolean) {
+        prefs.edit().putBoolean("is_token_sent", status).apply()
     }
 
     fun clearToken() {
