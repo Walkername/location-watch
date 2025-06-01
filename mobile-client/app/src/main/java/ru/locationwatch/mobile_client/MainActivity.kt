@@ -1,12 +1,14 @@
 package ru.locationwatch.mobile_client
 
 import android.Manifest
+import android.app.Application
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -19,8 +21,10 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.core.app.ActivityCompat
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -42,9 +46,11 @@ import org.eclipse.paho.client.mqttv3.MqttMessage
 import ru.locationwatch.mobile_client.config.AppConfig
 import ru.locationwatch.mobile_client.network.NotificationManager
 import ru.locationwatch.mobile_client.network.models.GPSDataRequest
+import ru.locationwatch.mobile_client.ui.AuthViewModel
 import ru.locationwatch.mobile_client.ui.theme.MobileclientTheme
 import ru.locationwatch.mobile_client.ui.screens.AuthorizationScreen
 import ru.locationwatch.mobile_client.ui.screens.MainScreen
+import java.util.Date
 
 class MainActivity : ComponentActivity() {
 
@@ -122,9 +128,31 @@ class MainActivity : ComponentActivity() {
 
                     updateGPS()
 
+                    val app = LocalContext.current.applicationContext as Application
+                    val viewModelFactory = AuthViewModel.createFactory(app)
+                    val viewModel: AuthViewModel = viewModel(factory = viewModelFactory)
+
+                    val accessToken = viewModel.getAccessToken()
+                    val expirationTime = viewModel.getExpirationTime()
+                    val currentTime = Date().time
+                    var authStatus = true
+
+                    if (accessToken != null) {
+                        expirationTime?.let {
+                            if (it * 1000 > currentTime) {
+                                authStatus = true
+                            } else {
+                                Log.e("token", "token is expired")
+                                authStatus = false
+                                viewModel.resetTokens()
+                            }
+                        }
+                    }
+                    Log.e("auth-status", "status: $authStatus")
+
                     NavHost(
                         navController = navController,
-                        startDestination = AuthorizationScreen
+                        startDestination = if (authStatus) MainScreen else AuthorizationScreen
                     ) {
                         composable<MainScreen> {
                             MainScreen(
