@@ -3,6 +3,7 @@ package ru.locationwatch.backend.services;
 import com.google.firebase.messaging.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.locationwatch.backend.dto.NotificationMessage;
 import ru.locationwatch.backend.models.FirebaseToken;
 import ru.locationwatch.backend.repositories.NotificationsRepository;
@@ -24,6 +25,11 @@ public class FirebaseMessagingService {
 
     public void saveFirebaseToken(FirebaseToken firebaseToken) {
         notificationsRepository.save(firebaseToken);
+    }
+
+    @Transactional
+    public void deleteFirebaseToken(int personId, String token) {
+        notificationsRepository.deleteByPersonIdAndToken(personId, token);
     }
 
     public String sendNotification(NotificationMessage request) throws FirebaseMessagingException {
