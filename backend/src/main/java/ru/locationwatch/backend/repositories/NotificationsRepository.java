@@ -6,4 +6,7 @@ import ru.locationwatch.backend.models.FirebaseToken;
 
 @Repository
 public interface NotificationsRepository extends JpaRepository<FirebaseToken, Integer> {
+
+    void deleteByPersonIdAndToken(int personId, String token);
+
 }
