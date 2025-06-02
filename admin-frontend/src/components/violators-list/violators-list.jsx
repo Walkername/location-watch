@@ -5,7 +5,7 @@ import validateDate from "../../utils/date-validation/date-validation";
 function ViolatorsList() {
     const accessToken = localStorage.getItem("accessToken");
 
-    const [violations, setViolations] = useState([]);
+    const [violations, setViolations] = useState(null);
     const [client, setClient] = useState(null);
 
     useEffect(() => {
@@ -40,11 +40,21 @@ function ViolatorsList() {
             <h2>Active Violations</h2>
             <ul>
                 {
-                    violations.map((violation, index) => {
-                        return (
-                            <div key={index}>{violation.clientId}, {violation.zoneTitle}, {validateDate(violation.timestamp)}</div>
-                        );
-                    })
+                    violations ?
+                        <>
+                            <div>Client: {violations.clientId},</div>
+                            <div>
+                                zones: {
+                                    violations.crossedZones.map((zone) => {
+                                        return <> {zone.title}, </>
+                                    })
+                                }
+                            </div>
+                            <div>
+                                Last time: {validateDate(violations.timestamp)}
+                            </div>
+                        </>
+                        : <></>
                 }
             </ul>
         </>
