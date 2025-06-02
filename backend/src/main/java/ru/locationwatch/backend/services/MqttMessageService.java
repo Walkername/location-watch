@@ -13,7 +13,6 @@ import ru.locationwatch.backend.models.Zone;
 
 import java.io.IOException;
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -30,8 +29,8 @@ public class MqttMessageService {
 
     @ServiceActivator(inputChannel = "mqttInputChannel")
     public void handleMessage(Message<?> message) {
-        List<ViolationMessage> violations = new ArrayList<>();
-
+        ViolationMessage violationMessage = null;
+        // Convert message to existing object
         GPSDataRequest gpsData = new GPSDataRequest();
         try {
             String json = message.getPayload().toString();
@@ -42,67 +41,70 @@ public class MqttMessageService {
 
         System.out.println(gpsData);
 
+        // Creating object of coordinate
         Coordinate point = new Coordinate(
                 gpsData.getLatitude(),
                 gpsData.getLongitude()
         );
 
+        // test point
+        Coordinate test = new Coordinate(
+                59.953229,
+                30.314315
+        );
+
+        // Getting all zones to check if user is inside of at least in one of them
         // This method is ineffective
         // Send request to DB each gps data
         // TODO: maybe add cache or other ways to reduce the load on the DB
         List<Zone> zones = zonesService.findAll();
 
-        int intersections = 0;
+        // Iteration on all zones
         for (Zone zone : zones) {
             List<Coordinate> area = zone.getArea();
-            int n = zone.getArea().size();
 
-            for (int i = 0; i < n; i++) {
-                Coordinate current = area.get(i);
-                Coordinate next = area.get((i + 1) % n);
-
-                if (rayCrossesSegment(point, current, next)) {
-                    intersections++;
-                }
-            }
-
-            if (intersections % 2 == 1) {
-                ViolationMessage violationMessage = new ViolationMessage(
+            // Location is in restricted zone:
+            boolean isPointInside = isPointInZone(test, area);
+            System.out.println("The user in restricted #" + zone.getTitle() + " zone: " + isPointInside);
+            if (isPointInside) {
+                // Creating violation message to send to admin frontend
+                violationMessage = new ViolationMessage(
                         0,
                         zone.getTitle(),
                         Instant.now()
                 );
-                violations.add(violationMessage);
+
+                // Creating notification message to send to mobile client
+                // TODO:
             }
         }
 
-        // Location is in restricted zone:
-        // intersections % 2 == 1 => odd -> true; even -> false.
-
-        // Send notification that user is in restricted zone
-        // TODO: send only to specific user
-//        if (intersections % 2 == 1) {
-//            messagingTemplate.convertAndSend("/topic/violations", "Notification from checking");
-//        }
-
-        // it's only example to send
-        ViolationMessage violationMessage = new ViolationMessage(
-                0,
-                "walkername",
-                Instant.now()
-        );
-        violations.add(violationMessage);
-        messagingTemplate.convertAndSend("/topic/violations", violations);
+        // Send to admin frontend
+        if (violationMessage != null) {
+            System.out.println("Here");
+            messagingTemplate.convertAndSend("/topic/violations", violationMessage);
+        }
     }
 
-    private boolean rayCrossesSegment(Coordinate point, Coordinate current, Coordinate next) {
-        if (current.getY() < point.getY() == next.getY() > point.getY()) {
-            return false;
+    private boolean isPointInZone(Coordinate point, List<Coordinate> zone) {
+        double x = point.getY();
+        double y = point.getX();
+        boolean inside = false;
+
+        for (int i = 0, j = zone.size() - 1; i < zone.size(); j = i++) {
+            double xi = zone.get(i).getY();
+            double yi = zone.get(i).getX();
+            double xj = zone.get(j).getY();
+            double yj = zone.get(j).getX();
+
+            // Check if point is a vertex
+            if (x == xi && y == yi) return true;
+
+            // Check if the edge crosses the ray from (x, y) to the right
+            boolean intersect = ((yi > y) != (yj > y))
+                    && (x < (xj - xi) * (y - yi) / (yj - yi) + xi);
+            if (intersect) inside = !inside;
         }
-
-        double intersectionX = (next.getX() - current.getX()) * (point.getY() - current.getY())
-                / (next.getY() - current.getY()) + current.getX();
-
-        return intersectionX > point.getX();
+        return inside;
     }
 }
