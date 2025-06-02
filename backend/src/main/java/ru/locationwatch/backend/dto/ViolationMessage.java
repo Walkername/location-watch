@@ -1,18 +1,21 @@
 package ru.locationwatch.backend.dto;
 
+import ru.locationwatch.backend.models.Zone;
+
 import java.time.Instant;
+import java.util.List;
 
 public class ViolationMessage {
 
     private int clientId;
 
-    private String zoneTitle;
+    private List<Zone> crossedZones;
 
     private Instant timestamp;
 
-    public ViolationMessage(int clientId, String zoneTitle, Instant timestamp) {
+    public ViolationMessage(int clientId, List<Zone> crossedZones, Instant timestamp) {
         this.clientId = clientId;
-        this.zoneTitle = zoneTitle;
+        this.crossedZones = crossedZones;
         this.timestamp = timestamp;
     }
 
@@ -20,16 +23,16 @@ public class ViolationMessage {
         return clientId;
     }
 
+    public List<Zone> getCrossedZones() {
+        return crossedZones;
+    }
+
+    public void setCrossedZones(List<Zone> crossedZones) {
+        this.crossedZones = crossedZones;
+    }
+
     public void setClientId(int clientId) {
         this.clientId = clientId;
-    }
-
-    public String getZoneTitle() {
-        return zoneTitle;
-    }
-
-    public void setZoneTitle(String zoneTitle) {
-        this.zoneTitle = zoneTitle;
     }
 
     public Instant getTimestamp() {
