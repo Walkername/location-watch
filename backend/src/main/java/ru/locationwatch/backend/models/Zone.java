@@ -74,6 +74,7 @@ public class Zone {
     public String toString() {
         return "Zone{" +
                 "id=" + id +
+                ", title='" + title + '\'' +
                 ", typeName='" + typeName + '\'' +
                 ", area=" + area +
                 '}';
