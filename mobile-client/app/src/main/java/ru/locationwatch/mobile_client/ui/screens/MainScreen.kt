@@ -318,6 +318,7 @@ fun OpenStreetMap(
                     40, 40, true
                 )
             )
+            setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_CENTER)
             setOnMarkerClickListener { _, _ -> true }
             mapView.overlays.add(this)
         }
@@ -379,6 +380,8 @@ fun OpenStreetMap(
                 mapView.overlays.add(poly)
             }
         }
+        mapView.overlays.remove(userMarker)
+        mapView.overlays.add(userMarker)
         mapView.postInvalidate()
     }
 
