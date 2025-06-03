@@ -361,8 +361,8 @@ fun OpenStreetMap(
                     points = cords.map { GeoPoint(it.latitude!!, it.longitude!!) }
                     fillPaint.apply {
                         color = when (zone.typeName) {
-                            "NO_SPEED" -> 0x80FF0000.toInt()
-                            "LESS_SPEED" -> 0x800048FF.toInt()
+                            "NO_SPEED" -> 0x66FF0000
+                            "LESS_SPEED" -> 0x660048FF
                             else -> Color.Transparent.toArgb()
                         }
                         style = Paint.Style.FILL
