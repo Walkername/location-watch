@@ -2,7 +2,7 @@ import CreateZoneForm from "../create-zone-form/create-zone-form";
 import ViolatorsList from "../violators-list/violators-list";
 import ZoneList from "../zone-list/zone-list";
 
-function FunctionBar({ positions, setPositions, setZones, typeName, setTypeName, zones }) {
+function FunctionBar({ positions, setPositions, setZones, typeName, setTypeName, zones, violations }) {
     return (
         <div>
             <div>You can use "Ctrl + Z" shortcut to undo last marker</div>
@@ -24,7 +24,7 @@ function FunctionBar({ positions, setPositions, setZones, typeName, setTypeName,
 
             <ZoneList zones={zones} />
 
-            <ViolatorsList />
+            <ViolatorsList violations={violations} />
         </div>
     )
 }
