@@ -15,9 +15,9 @@ public class PolygonConverter implements AttributeConverter<List<Coordinate>, St
         for (int i = 0; i < area.size(); i++) {
             Coordinate coord = area.get(i);
             sb.append("(")
-                    .append(coord.getX())
+                    .append(coord.getLatitude())
                     .append(",")
-                    .append(coord.getY())
+                    .append(coord.getLongitude())
                     .append(")");
             if (i < area.size() - 1) sb.append(",");
         }

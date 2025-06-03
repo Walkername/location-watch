@@ -53,15 +53,15 @@ public class MqttMessageService {
             double maxLat = Double.MIN_VALUE;
 
             for (Coordinate coordinate : area) {
-                double lat = coordinate.getX();
-                double lon = coordinate.getY();
+                double lat = coordinate.getLatitude();
+                double lon = coordinate.getLongitude();
                 minLon = Math.min(minLon, lon);
                 maxLon = Math.max(maxLon, lon);
                 minLat = Math.min(minLat, lat);
                 maxLat = Math.max(maxLat, lat);
             }
 
-            Rectangle bounds = Geometries.rectangle(minLon, maxLon, minLat, maxLat);
+            Rectangle bounds = Geometries.rectangle(minLat, minLon, maxLat, maxLon);
             freshIndex = freshIndex.add(zone, bounds);
         }
 
@@ -77,9 +77,13 @@ public class MqttMessageService {
         if (gpsData == null) {
             return;
         }
-
         System.out.println(gpsData);
 
+        // Check if the user is inside in at least one zone
+        checkPointAgainstZones(gpsData);
+    }
+
+    private void checkPointAgainstZones(GPSDataRequest gpsData) {
         // Creating object of coordinate
         Coordinate point = new Coordinate(
                 gpsData.getLatitude(),
@@ -88,17 +92,18 @@ public class MqttMessageService {
 
         // test point
         Coordinate test = new Coordinate(
-                59.953229,
-                30.314315
+                59.937500,
+                30.308611
         );
 
-        checkPointAgainstZones(test, gpsData.getClientId());
-    }
+        double userSpeed = gpsData.getSpeed();
+        double testSpeed = 11.0;
 
-    private void checkPointAgainstZones(Coordinate point, int clientId) {
-        double lon = point.getY();
-        double lat = point.getX();
-        Point geoPoint = Geometries.point(lon, lat);
+        // Change to actual or test point
+        Point geoPoint = Geometries.point(
+                test.getLatitude(),
+                test.getLongitude()
+        );
 
         RTree<Zone, Geometry> currentIndex = zonesIndex.get();
 
@@ -110,17 +115,30 @@ public class MqttMessageService {
                 .toBlocking()
                 .toIterable();
 
+        // Convert to List and get size
+//        List<Zone> zonesList = StreamSupport.stream(candidates.spliterator(), false)
+//                .toList();
+//
+//        int size = zonesList.size();
+//        System.out.println("Number of zones: " + size);
+
         List<Zone> crossedZones = new ArrayList<>();
         for (Zone zone : candidates) {
-            if (isPointInZone(point, zone.getArea())) {
+            if (isPointInZone(test, zone.getArea())) {
+                if (zone.getTypeName().equals("LESS_SPEED") && testSpeed <= zone.getSpeed()) {
+                    continue;
+                }
                 crossedZones.add(zone);
             }
         }
 
         if (!crossedZones.isEmpty()) {
             ViolationMessage violationMessage = new ViolationMessage(
-                    clientId,
+                    gpsData.getClientId(),
                     crossedZones,
+                    test.getLatitude(),
+                    test.getLongitude(),
+                    testSpeed,
                     Instant.now()
             );
             messagingTemplate.convertAndSend("/topic/violations", violationMessage);
@@ -128,15 +146,15 @@ public class MqttMessageService {
     }
 
     private boolean isPointInZone(Coordinate point, List<Coordinate> zone) {
-        double x = point.getY();
-        double y = point.getX();
+        double x = point.getLongitude();
+        double y = point.getLatitude();
         boolean inside = false;
 
         for (int i = 0, j = zone.size() - 1; i < zone.size(); j = i++) {
-            double xi = zone.get(i).getY();
-            double yi = zone.get(i).getX();
-            double xj = zone.get(j).getY();
-            double yj = zone.get(j).getX();
+            double xi = zone.get(i).getLongitude();
+            double yi = zone.get(i).getLatitude();
+            double xj = zone.get(j).getLongitude();
+            double yj = zone.get(j).getLatitude();
 
             // Check if point is a vertex
             if (x == xi && y == yi) return true;

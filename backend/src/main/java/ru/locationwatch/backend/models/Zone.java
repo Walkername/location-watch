@@ -1,6 +1,7 @@
 package ru.locationwatch.backend.models;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Size;
 import org.hibernate.annotations.ColumnTransformer;
@@ -26,15 +27,20 @@ public class Zone {
     @Column(name = "type_name")
     private String typeName;
 
+    @Max(value = 20, message = "Speed should be less or equal than 20")
+    @Column(name = "speed")
+    private int speed;
+
     @Convert(converter = PolygonConverter.class)
     @ColumnTransformer(write = "?::polygon")
     private List<Coordinate> area;
 
     public Zone() {}
 
-    public Zone(String title, String typeName, List<Coordinate> area) {
+    public Zone(String title, String typeName, int speed, List<Coordinate> area) {
         this.title = title;
         this.typeName = typeName;
+        this.speed = speed;
         this.area = area;
     }
 
@@ -68,6 +74,14 @@ public class Zone {
 
     public void setTitle(String title) {
         this.title = title;
+    }
+
+    public int getSpeed() {
+        return speed;
+    }
+
+    public void setSpeed(int speed) {
+        this.speed = speed;
     }
 
     @Override

@@ -1,5 +1,6 @@
 package ru.locationwatch.backend.dto;
 
+import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Size;
 import ru.locationwatch.backend.models.Coordinate;
@@ -16,15 +17,19 @@ public class ZoneDTO {
     @Size(max = 30, message = "Type should be less than 30")
     private String typeName;
 
+    @Max(value = 20, message = "Speed should be less or equal than 20")
+    private int speed;
+
     // Maybe to find out what annotations
     // can I use to validate collections
     private List<Coordinate> area;
 
     public ZoneDTO() {}
 
-    public ZoneDTO(String title, String typeName, List<Coordinate> area) {
+    public ZoneDTO(String title, String typeName, int speed, List<Coordinate> area) {
         this.title = title;
         this.typeName = typeName;
+        this.speed = speed;
         this.area = area;
     }
 
@@ -52,10 +57,20 @@ public class ZoneDTO {
         this.title = title;
     }
 
+    public int getSpeed() {
+        return speed;
+    }
+
+    public void setSpeed(int speed) {
+        this.speed = speed;
+    }
+
     @Override
     public String toString() {
         return "ZoneDTO{" +
-                "typeName='" + typeName + '\'' +
+                "title='" + title + '\'' +
+                ", typeName='" + typeName + '\'' +
+                ", speed=" + speed +
                 ", area=" + area +
                 '}';
     }
