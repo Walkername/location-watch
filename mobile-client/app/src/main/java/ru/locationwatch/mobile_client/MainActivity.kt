@@ -45,6 +45,7 @@ import org.eclipse.paho.client.mqttv3.MqttException
 import org.eclipse.paho.client.mqttv3.MqttMessage
 import ru.locationwatch.mobile_client.config.AppConfig
 import ru.locationwatch.mobile_client.network.NotificationManager
+import ru.locationwatch.mobile_client.network.TokenManager
 import ru.locationwatch.mobile_client.network.models.GPSDataRequest
 import ru.locationwatch.mobile_client.ui.AuthViewModel
 import ru.locationwatch.mobile_client.ui.theme.MobileclientTheme
@@ -323,11 +324,16 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    fun publish(client: MqttAndroidClient) {
+    private fun publish(client: MqttAndroidClient) {
         // if one of gps data is null
         // then data will not be send to backend
+
+        val tokenManager = TokenManager(this)
+        val userId = tokenManager.getUserId()
+
         if (
-            latitude.value == null
+            userId == null
+            || latitude.value == null
             || longitude.value == null
             || speed.value == null
         ) {
@@ -337,7 +343,7 @@ class MainActivity : ComponentActivity() {
         val publishTopic = "\$devices/$userId/$mqttTopic"
 
         val gpsData = GPSDataRequest(
-            0,
+            userId,
             latitude.value,
             longitude.value,
             speed.value
