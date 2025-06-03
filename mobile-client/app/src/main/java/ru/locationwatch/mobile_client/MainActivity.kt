@@ -35,6 +35,7 @@ import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
 import info.mqtt.android.service.MqttAndroidClient
+import kotlinx.coroutines.Runnable
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 import org.eclipse.paho.client.mqttv3.IMqttActionListener
@@ -66,6 +67,8 @@ class MainActivity : ComponentActivity() {
 
     private val mHandler = Handler(Looper.getMainLooper())
 
+    private lateinit var mRunnableTask: Runnable
+
     private var fusedLocationProviderClient: FusedLocationProviderClient? = null
     private lateinit var locationRequest: LocationRequest
     private lateinit var locationCallback: LocationCallback
@@ -74,6 +77,8 @@ class MainActivity : ComponentActivity() {
     private val latitude = mutableStateOf<Double?>(null)
     private val longitude = mutableStateOf<Double?>(null)
     private val speed = mutableStateOf<Double?>(null)
+
+    private val tripStatus = mutableStateOf(false)
 
     private val notificationData = mutableStateOf<Pair<String?, String?>?>(null)
 
@@ -163,7 +168,9 @@ class MainActivity : ComponentActivity() {
                                 latitude = latitude,
                                 longitude = longitude,
                                 speed = speed,
+                                tripStatus = tripStatus,
                                 startPublish = { startPublish(statusText) },
+                                stopPublish = { stopPublish() },
                                 navigateToAuth = { navController.navigate(AuthorizationScreen) }
                             )
                         }
@@ -302,7 +309,7 @@ class MainActivity : ComponentActivity() {
 
                     publish(client)
 
-                    val mRunnableTask = object : Runnable {
+                    mRunnableTask = object : Runnable {
                         override fun run() {
                             publish(client)
                             mHandler.postDelayed(this, 5000)
@@ -324,16 +331,19 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    private fun stopPublish() {
+        mHandler.removeCallbacks(mRunnableTask)
+    }
+
     private fun publish(client: MqttAndroidClient) {
         // if one of gps data is null
         // then data will not be send to backend
 
         val tokenManager = TokenManager(this)
-        val userId = tokenManager.getUserId()
+        val jwtUserId = tokenManager.getUserId()
 
         if (
-            userId == null
-            || latitude.value == null
+            latitude.value == null
             || longitude.value == null
             || speed.value == null
         ) {
@@ -343,7 +353,7 @@ class MainActivity : ComponentActivity() {
         val publishTopic = "\$devices/$userId/$mqttTopic"
 
         val gpsData = GPSDataRequest(
-            userId,
+            jwtUserId,
             latitude.value,
             longitude.value,
             speed.value
