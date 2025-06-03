@@ -135,7 +135,7 @@ class MainActivity : ComponentActivity() {
                     val accessToken = viewModel.getAccessToken()
                     val expirationTime = viewModel.getExpirationTime()
                     val currentTime = Date().time
-                    var authStatus = true
+                    var authStatus = false
 
                     if (accessToken != null) {
                         expirationTime?.let {

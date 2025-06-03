@@ -147,7 +147,11 @@ fun MainScreen(
 
     LaunchedEffect(Unit) {
         authViewModel.loadUserId()
-        userViewModel.fetchUser(authViewModel.userId!!)
+        if (authViewModel.userId != null) {
+            userViewModel.fetchUser(authViewModel.userId!!)
+        } else {
+            navigateToAuth()
+        }
 
         zoneViewModel.fetchZones()
     }
@@ -350,10 +354,10 @@ fun OpenStreetMap(
             .forEach { mapView.overlays.remove(it) }
 
         // add new ones
-        zones.forEach { zone ->
+        zones.reversed().forEach { zone ->
             zone.area?.let { cords ->
                 val poly = Polygon().apply {
-                    points = cords.map { GeoPoint(it.x!!, it.y!!) }
+                    points = cords.map { GeoPoint(it.latitude!!, it.longitude!!) }
                     fillPaint.apply {
                         color = when (zone.typeName) {
                             "NO_SPEED" -> 0x80FF0000.toInt()
@@ -368,7 +372,7 @@ fun OpenStreetMap(
                         style = Paint.Style.STROKE
                     }
                     setOnClickListener { _, _, _ ->
-                        onZoneSelected(zone) // Use callback instead of local state
+                        onZoneSelected(zone)
                         true
                     }
                 }
