@@ -21,6 +21,7 @@ import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -36,10 +37,13 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -60,6 +64,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
@@ -103,7 +108,9 @@ fun MainScreen(
     latitude: MutableState<Double?>,
     longitude: MutableState<Double?>,
     speed: MutableState<Double?>,
+    tripStatus: MutableState<Boolean>,
     startPublish: () -> Unit,
+    stopPublish: () -> Unit,
     navigateToAuth: () -> Unit
 ) {
     NotificationPermissionHandler()
@@ -134,7 +141,8 @@ fun MainScreen(
     val authViewModel: AuthViewModel = viewModel(factory = authViewModelFactory)
 
     val notificationViewModelFactory = NotificationViewModel.createFactory(app)
-    val notificationViewModel: NotificationViewModel = viewModel(factory = notificationViewModelFactory)
+    val notificationViewModel: NotificationViewModel =
+        viewModel(factory = notificationViewModelFactory)
 
     val zoneViewModelFactory = ZoneViewModel.createFactory(app)
     val zoneViewModel: ZoneViewModel = viewModel(factory = zoneViewModelFactory)
@@ -243,7 +251,9 @@ fun MainScreen(
                 MenuBar(
                     modifier = Modifier
                         .weight(1f),
-                    startPublish = { startPublish() }
+                    tripStatus = tripStatus,
+                    startPublish = { startPublish() },
+                    stopPublish = { stopPublish() }
                 )
             }
 
@@ -609,7 +619,9 @@ fun NavigationBar(
 @Composable
 fun MenuBar(
     modifier: Modifier,
-    startPublish: () -> Unit
+    tripStatus: MutableState<Boolean>,
+    startPublish: () -> Unit,
+    stopPublish: () -> Unit
 ) {
     Row(
         modifier = modifier
@@ -618,13 +630,18 @@ fun MenuBar(
         horizontalArrangement = Arrangement.SpaceEvenly,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Button(
-            modifier = Modifier
-                .size(80.dp),
-            onClick = { startPublish() }
-        ) {
-            Text("Start")
-        }
+        StartTripButton(
+            isActive = tripStatus.value,
+            onClick = {
+                if (tripStatus.value) {
+                    stopPublish()
+                    tripStatus.value = false
+                } else {
+                    startPublish()
+                    tripStatus.value = true
+                }
+            }
+        )
     }
 }
 
@@ -642,6 +659,59 @@ fun StatusBar(
         Text(
             text = statusText.value
         )
+    }
+}
+
+@Composable
+fun StartTripButton(
+    isActive: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Box(
+        modifier = modifier
+            .shadow(
+                elevation = 4.dp,
+                shape = CircleShape,
+                ambientColor = Color(0x40000000),
+                spotColor = Color(0x40000000)
+            )
+            .border(
+                border = BorderStroke(1.5.dp, Color.LightGray),
+                shape = CircleShape
+            )
+            .clip(CircleShape)
+            .background(Color.White)
+            .padding(4.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        IconButton(
+            onClick = onClick,
+            modifier = Modifier.size(64.dp)
+        ) {
+            Box(
+                modifier = Modifier.size(40.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = if (isActive) Icons.Filled.LocationOn else Icons.Filled.PlayArrow,
+                    contentDescription = if (isActive) "Trip in progress" else "Start trip",
+                    modifier = Modifier.size(32.dp),
+                    tint = Color(0xFF333333)
+                )
+
+                // Active state indicator
+                if (isActive) {
+                    Box(
+                        modifier = Modifier
+                            .size(8.dp)
+                            .align(Alignment.TopEnd)
+                            .clip(CircleShape)
+                            .background(Color(0xFFE53935))
+                    )
+                }
+            }
+        }
     }
 }
 
