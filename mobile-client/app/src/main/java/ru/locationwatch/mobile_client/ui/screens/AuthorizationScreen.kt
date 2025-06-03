@@ -2,16 +2,22 @@ package ru.locationwatch.mobile_client.ui.screens
 
 import android.app.Application
 import android.util.Log
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
@@ -23,11 +29,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
@@ -196,40 +204,40 @@ fun SignUpForm(
             color = Color(0xFFFF0000)
         )
 
-        Button(
+        AuthButton(
+            text = "Sign Up",
             onClick = {
                 when {
                     username.value.length < 5 -> {
                         errorMessage.value = "Username should be greater than 5 characters"
-                        return@Button
+                        return@AuthButton
                     }
 
                     username.value.length > 20 -> {
                         errorMessage.value = "Username should be less than 20 characters"
-                        return@Button
+                        return@AuthButton
                     }
 
                     password.value.length < 5 -> {
                         errorMessage.value = "Password should be greater than 5 characters"
-                        return@Button
+                        return@AuthButton
                     }
 
                     password.value.length > 50 -> {
                         errorMessage.value = "Password should be less that 50 characters"
-                        return@Button
+                        return@AuthButton
                     }
 
                     password.value != passwordConfirmation.value -> {
                         errorMessage.value = "Password are not equal"
-                        return@Button
+                        return@AuthButton
                     }
                 }
 
                 viewModel.register(username.value, password.value)
             }
-        ) {
-            Text("Sign Up")
-        }
+        )
+
         Text(
             text = "I have account",
             style = TextStyle(textDecoration = TextDecoration.Underline),
@@ -311,39 +319,69 @@ fun SignInForm(
             color = Color(0xFFFF0000)
         )
 
-        Button(
+        AuthButton(
+            text = "Sign In",
             onClick = {
                 when {
                     username.value.length < 5 -> {
                         errorMessage.value = "Username should be greater than 5 characters"
-                        return@Button
+                        return@AuthButton
                     }
 
                     username.value.length > 20 -> {
                         errorMessage.value = "Username should be less than 20 characters"
-                        return@Button
+                        return@AuthButton
                     }
 
                     password.value.length < 5 -> {
                         errorMessage.value = "Password should be greater than 5 characters"
-                        return@Button
+                        return@AuthButton
                     }
 
                     password.value.length > 50 -> {
                         errorMessage.value = "Password should be less that 50 characters"
-                        return@Button
+                        return@AuthButton
                     }
                 }
                 viewModel.login(username.value, password.value)
             }
-        ) {
-            Text("Sign In")
-        }
+        )
         Text(
             text = "Create account",
             style = TextStyle(textDecoration = TextDecoration.Underline),
             color = Color(0xFF2196F3),
             modifier = Modifier.clickable { authType.value = true }
+        )
+    }
+}
+
+@Composable
+fun AuthButton(
+    text: String,
+    onClick: () -> Unit
+) {
+    IconButton(
+        onClick = onClick,
+        modifier = Modifier
+            .height(50.dp)
+            .width(128.dp)
+            .shadow(
+                elevation = 4.dp,
+                shape = CircleShape,
+                ambientColor = Color(0x40000000),
+                spotColor = Color(0x40000000)
+            )
+            .border(
+                border = BorderStroke(1.5.dp, Color.LightGray),
+                shape = CircleShape
+            )
+            .clip(CircleShape)
+            .background(Color.White)
+            .padding(4.dp)
+    ) {
+        Text(
+            text = text,
+            fontWeight = FontWeight.Bold
         )
     }
 }
@@ -384,8 +422,5 @@ fun AuthTextField(
 @Composable
 fun AuthorizationPreview() {
     MobileclientTheme {
-        AuthorizationScreen(
-            navigateToMain = { }
-        )
     }
 }
