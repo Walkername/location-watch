@@ -170,7 +170,7 @@ class MainActivity : ComponentActivity() {
                                 speed = speed,
                                 tripStatus = tripStatus,
                                 startPublish = { startPublish(statusText) },
-                                stopPublish = { stopPublish() },
+                                stopPublish = { stopPublish(statusText) },
                                 navigateToAuth = { navController.navigate(AuthorizationScreen) }
                             )
                         }
@@ -331,8 +331,9 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    private fun stopPublish() {
+    private fun stopPublish(statusText: MutableState<String>) {
         mHandler.removeCallbacks(mRunnableTask)
+        statusText.value = "Status: Disconnected"
     }
 
     private fun publish(client: MqttAndroidClient) {
