@@ -1,7 +1,8 @@
-import { DivIcon, Icon } from "leaflet";
+import { DivIcon } from "leaflet";
+import { Client } from "@stomp/stompjs";
 import { useEffect, useState } from "react";
 import { MapContainer, Marker, Polygon, Polyline, Popup, TileLayer, useMapEvents } from "react-leaflet";
-import { createZone, deleteZone, getZones } from "../../api/zones-api";
+import { deleteZone, getZones } from "../../api/zones-api";
 import FunctionBar from "../../components/function-bar/function-bar";
 import MapZones from "../../components/map-zones/map-zones";
 import NavigationBar from "../../components/navigation-bar/navigation-bar";
@@ -108,6 +109,42 @@ function MainPage() {
 
     const [typeName, setTypeName] = useState("NO_SPEED")
 
+    // Violators list
+
+    const accessToken = localStorage.getItem("accessToken");
+
+    const [violations, setViolations] = useState(() => new Map());
+    const [client, setClient] = useState(null);
+
+    useEffect(() => {
+        const stompClient = new Client({
+            brokerURL: 'ws://localhost:8080/ws',
+            connectHeaders: {
+                Authorization: `Bearer ${accessToken}`
+            },
+            reconnectDelay: 5000,
+            debug: (str) => console.log(str),
+        });
+
+        stompClient.onConnect = (frame) => {
+            stompClient.subscribe('/topic/violations',
+                (message) => {
+                    const newViolation = JSON.parse(message.body);
+                    const newMap = new Map(violations)
+                    newMap.set(newViolation.clientId, newViolation)
+                    setViolations(newMap);
+                }
+            );
+        };
+
+        stompClient.activate();
+        setClient(stompClient);
+
+        return () => {
+            stompClient.deactivate();
+        };
+    }, []);
+
     return (
         <>
             <NavigationBar title="Admin Interface" />
@@ -135,6 +172,17 @@ function MainPage() {
                                 </Popup>
                             </Marker>
                         ))}
+
+
+                        {
+                            Array.from(violations.entries()).map(([key, value], index) => (
+                                <Marker
+                                    key={`marker-${key}`}
+                                    position={[value.latitude, value.longitude]}
+                                    icon={createNumberedIcon(`U${key}`)}
+                                ></Marker>
+                            ))
+                        }
 
                         {/* Render connecting lines */}
                         {positions.length >= 2 && (
@@ -171,6 +219,7 @@ function MainPage() {
                         typeName={typeName}
                         setTypeName={setTypeName}
                         zones={zones}
+                        violations={violations}
                     />
                 </div>
             </div>

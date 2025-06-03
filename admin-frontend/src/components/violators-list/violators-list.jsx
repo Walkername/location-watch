@@ -1,60 +1,31 @@
-import { Client } from "@stomp/stompjs";
+
 import { useEffect, useState } from "react";
 import validateDate from "../../utils/date-validation/date-validation";
 
-function ViolatorsList() {
-    const accessToken = localStorage.getItem("accessToken");
-
-    const [violations, setViolations] = useState(null);
-    const [client, setClient] = useState(null);
-
-    useEffect(() => {
-        const stompClient = new Client({
-            brokerURL: 'ws://localhost:8080/ws',
-            connectHeaders: {
-                Authorization: `Bearer ${accessToken}`
-            },
-            reconnectDelay: 5000,
-            debug: (str) => console.log(str),
-        });
-
-        stompClient.onConnect = (frame) => {
-            stompClient.subscribe('/topic/violations',
-                (message) => {
-                    const newViolations = JSON.parse(message.body);
-                    setViolations(newViolations);
-                }
-            );
-        };
-
-        stompClient.activate();
-        setClient(stompClient);
-
-        return () => {
-            stompClient.deactivate();
-        };
-    }, []);
-
+function ViolatorsList({ violations }) {
     return (
         <>
             <h2>Active Violations</h2>
             <ul>
                 {
-                    violations ?
-                        <>
-                            <div>Client: {violations.clientId},</div>
+                    Array.from(violations.entries()).map(([key, value], index) => (
+                        <div key={index}>
+                            <div>Client: {key}</div>
                             <div>
-                                zones: {
-                                    violations.crossedZones.map((zone) => {
-                                        return <> {zone.title}, </>
+                                Zones: {
+                                    value.crossedZones.map((zone, index) => {
+                                        return <span key={index}> {zone.title} </span>
                                     })
                                 }
                             </div>
                             <div>
-                                Last time: {validateDate(violations.timestamp)}
+                                Speed: {value.speed} km/h
                             </div>
-                        </>
-                        : <></>
+                            <div>
+                                Last time: {validateDate(value.timestamp)}
+                            </div>
+                        </div>
+                    ))
                 }
             </ul>
         </>
