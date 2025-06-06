@@ -296,7 +296,7 @@ fun NotificationPermissionHandler() {
 fun OpenStreetMap(
     modifier: Modifier = Modifier,
     initialPosition: GeoPoint = GeoPoint(59.937500, 30.308611),
-    zoomLevel: Double = 12.0,
+    zoomLevel: Double = 14.0,
     zones: List<ZoneResponse> = emptyList(),
     // latitude and longitude are assigned manually to check it in virtual device
     // but for production you need to remove these assignments
@@ -528,9 +528,22 @@ fun ZoneBottomSheet(
 
                     Text("Title: ${zone.title}", style = MaterialTheme.typography.titleLarge)
                     Spacer(Modifier.height(4.dp))
-                    Text("Type: ${zone.typeName}")
+
+                    val typeName: String
+                    val info: String
+                    if (zone.typeName == "NO_SPEED") {
+                        typeName = "Restricted Area"
+                        info = "You cannot be in this area."
+                    } else {
+                        typeName = "Speed Limited Area"
+                        info = "You may be in this area, but you must obey the speed limit."
+                    }
+
+                    Text("Type: $typeName")
                     Spacer(Modifier.height(4.dp))
-                    Text("Area Points: ${zone.area?.size ?: 0}")
+                    Text("Max. Speed: ${zone.speed} km/h")
+                    Spacer(Modifier.height(4.dp))
+                    Text(info)
                 }
             }
         }
