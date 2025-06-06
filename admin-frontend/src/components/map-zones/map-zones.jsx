@@ -23,8 +23,9 @@ function MapZones({ zones, getZoneColor, handleDelete }) {
                         <Popup>
                             <div>
                                 <h3>{zone.title}</h3>
-                                <p>Type: {zone.typeName}</p>
-                                <p>Points: {zone.area.length}</p>
+                                <p><b>Type:</b> {zone.typeName}</p>
+                                <p><b>Max. Speed:</b> {zone.speed} km/h</p>
+                                <p><b>Points:</b> {zone.area.length}</p>
                                 <button
                                     onClick={() => handleDelete(zone.id)}
                                 >Delete</button>
