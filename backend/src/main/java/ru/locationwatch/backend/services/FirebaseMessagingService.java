@@ -23,6 +23,10 @@ public class FirebaseMessagingService {
         this.notificationsRepository = notificationsRepository;
     }
 
+    public FirebaseToken getFirebaseTokenByPersonId(int personId) {
+        return notificationsRepository.findByPersonId(personId).orElse(null);
+    }
+
     public void saveFirebaseToken(FirebaseToken firebaseToken) {
         notificationsRepository.save(firebaseToken);
     }
