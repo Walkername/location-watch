@@ -1,12 +1,15 @@
 package ru.locationwatch.backend.services;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.davidmoten.rtree.Entry;
 import com.github.davidmoten.rtree.RTree;
 import com.github.davidmoten.rtree.geometry.Geometries;
 import com.github.davidmoten.rtree.geometry.Geometry;
 import com.github.davidmoten.rtree.geometry.Point;
 import com.github.davidmoten.rtree.geometry.Rectangle;
+import com.google.firebase.messaging.FirebaseMessagingException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.messaging.Message;
@@ -15,14 +18,17 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import ru.locationwatch.backend.dto.GPSDataRequest;
+import ru.locationwatch.backend.dto.NotificationMessage;
 import ru.locationwatch.backend.dto.ViolationMessage;
 import ru.locationwatch.backend.models.Coordinate;
+import ru.locationwatch.backend.models.FirebaseToken;
 import ru.locationwatch.backend.models.Zone;
 
 import java.io.IOException;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 @Service
@@ -31,13 +37,26 @@ public class MqttMessageService {
 
     private final ZonesService zonesService;
     private final SimpMessagingTemplate messagingTemplate;
+    private final FirebaseMessagingService firebaseMessagingService;
     private final AtomicReference<RTree<Zone, Geometry>> zonesIndex = new AtomicReference<>(RTree.create());
-    private volatile List<Zone> cachedZones = List.of();
+
+    private final Cache<Integer, String> tokenCache = Caffeine.newBuilder()
+            .expireAfterWrite(1, TimeUnit.HOURS)
+            .build();
+
+    private final Cache<Integer, Instant> lastNotificationCache = Caffeine.newBuilder()
+            .expireAfterWrite(1, TimeUnit.HOURS)
+            .build();
 
     @Autowired
-    public MqttMessageService(ZonesService zonesService, SimpMessagingTemplate messagingTemplate) {
+    public MqttMessageService(
+            ZonesService zonesService,
+            SimpMessagingTemplate messagingTemplate,
+            FirebaseMessagingService firebaseMessagingService
+    ) {
         this.zonesService = zonesService;
         this.messagingTemplate = messagingTemplate;
+        this.firebaseMessagingService = firebaseMessagingService;
         refreshZoneCaches();
     }
 
@@ -66,7 +85,6 @@ public class MqttMessageService {
         }
 
         System.out.println("Cached zones have been refreshed");
-        cachedZones = freshZones;
         zonesIndex.set(freshIndex);
     }
 
@@ -115,23 +133,38 @@ public class MqttMessageService {
                 .toBlocking()
                 .toIterable();
 
-        // Convert to List and get size
-//        List<Zone> zonesList = StreamSupport.stream(candidates.spliterator(), false)
-//                .toList();
-//
-//        int size = zonesList.size();
-//        System.out.println("Number of zones: " + size);
+        String notificationDescription = "This is a restricted area. You must leave immediately!";
+        boolean hasSpeedViolation = false;
+        boolean hasRestrictedViolation = false;
 
         List<Zone> crossedZones = new ArrayList<>();
+
+        // Check each candidate
         for (Zone zone : candidates) {
             if (isPointInZone(test, zone.getArea())) {
-                if (zone.getTypeName().equals("LESS_SPEED") && testSpeed <= zone.getSpeed()) {
-                    continue;
+                if (zone.getTypeName().equals("LESS_SPEED")) {
+                    if (testSpeed > zone.getSpeed()) {
+                        crossedZones.add(zone);
+                        hasSpeedViolation = true;
+                    }
+                } else {
+                    crossedZones.add(zone);
+                    hasRestrictedViolation = true;
                 }
-                crossedZones.add(zone);
             }
         }
 
+        // Set appropriate notification message
+        if (hasRestrictedViolation) {
+            notificationDescription = "This is a restricted area. You must leave immediately!";
+        }
+        if (hasSpeedViolation) {
+            notificationDescription = "This is a speed-restricted area. You must slow down!";
+        }
+
+        int clientId = gpsData.getClientId();
+
+        // If there are crossed zones then send notification to mobile client and admin interface
         if (!crossedZones.isEmpty()) {
             ViolationMessage violationMessage = new ViolationMessage(
                     gpsData.getClientId(),
@@ -142,6 +175,34 @@ public class MqttMessageService {
                     Instant.now()
             );
             messagingTemplate.convertAndSend("/topic/violations", violationMessage);
+
+            Instant lastSent = lastNotificationCache.getIfPresent(clientId);
+
+            if (lastSent == null || lastSent.plusSeconds(1800).isBefore(Instant.now())) {
+                // Getting firebase token from DB or cache
+                String token = tokenCache.get(clientId, id -> {
+                    FirebaseToken firebaseToken = firebaseMessagingService.getFirebaseTokenByPersonId(id);
+                    return (firebaseToken != null) ? firebaseToken.getToken() : null;
+                });
+
+                if (token != null) {
+                    NotificationMessage notificationMessage = new NotificationMessage(
+                            "Warning!",
+                            notificationDescription,
+                            token
+                    );
+                    try {
+                        firebaseMessagingService.sendNotification(notificationMessage);
+                    } catch (FirebaseMessagingException e) {
+                        e.printStackTrace();
+                    }
+                }
+                // Update last sent time regardless of token status
+                lastNotificationCache.put(clientId, Instant.now());
+            }
+        } else {
+            // Delete user from cache
+            lastNotificationCache.invalidate(clientId);
         }
     }
 
