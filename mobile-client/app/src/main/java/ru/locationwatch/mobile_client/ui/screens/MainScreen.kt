@@ -324,7 +324,7 @@ fun OpenStreetMap(
         Marker(mapView).apply {
             icon = BitmapDrawable(
                 context.resources, Bitmap.createScaledBitmap(
-                    ContextCompat.getDrawable(context, R.drawable.gps_loc)!!.toBitmap(),
+                    ContextCompat.getDrawable(context, R.drawable.gps_loc_1)!!.toBitmap(),
                     40, 40, true
                 )
             )
