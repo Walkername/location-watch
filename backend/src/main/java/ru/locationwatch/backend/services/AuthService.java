@@ -74,8 +74,14 @@ public class AuthService {
 
     @Transactional
     public void updateRefreshToken(int personId, String newRefreshToken) {
-        RefreshToken refreshToken = findRefreshToken(personId);
-        refreshToken.setRefreshToken(newRefreshToken);
+        Optional<RefreshToken> refreshToken = refreshTokensRepository.findByPersonId(personId);
+        // If DB does not store refresh token for this user, then
+        // it just will be saved in DB
+        if (refreshToken.isPresent()) {
+            refreshToken.get().setRefreshToken(newRefreshToken);
+        } else {
+            refreshTokensRepository.save(new RefreshToken(personId, newRefreshToken));
+        }
     }
 
 }
