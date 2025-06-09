@@ -24,10 +24,10 @@ function LoginPage() {
             .then((data) => {
                 setErrorMessage("");
                 localStorage.setItem("accessToken", data.accessToken);
+                localStorage.setItem("refreshToken", data.refreshToken);
                 navigate("/");
             })
             .catch((error) => {
-                console.error("Error:", error);
                 setErrorMessage("Wrong username or password");
             })
     }

@@ -1,38 +1,19 @@
 
-export const getZones = async () => {
-    const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/zones`);
-    if (!response.ok) {
-        throw new Error('Failed to get zones');
-    }
-    return response.json();
-}
+import request from "./fetch-client";
 
-export const createZone = async (zoneData) => {
-    const token = localStorage.getItem("accessToken");
-    const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/zones/add`, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            "Authorization": "Bearer " + token
-        },
-        body: JSON.stringify(zoneData)
-    });
-    if (!response.ok) {
-        throw new Error('Failed to add new zone');
-    }
-    return response.json();
-}
+export const getZones = () => request(`/zones`);
 
-export const deleteZone = async (id) => {
-    const token = localStorage.getItem("accessToken");
-    const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/zones/delete/${id}`, {
+export const createZone = zoneData => request(
+    `/zones/add`,
+    {
+        method: 'POST',
+        body: zoneData
+    }
+);
+
+export const deleteZone = id => request(
+    `/zones/delete/${id}`,
+    {
         method: "DELETE",
-        headers: {
-            "Authorization": "Bearer " + token
-        }
-    });
-    if (!response.ok) {
-        throw new Error('Failed to delete the zone');
     }
-    return response.json();
-}
+);
