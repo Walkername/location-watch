@@ -1,32 +1,25 @@
+import request from "./fetch-client";
 
-export const login = async (formData) => {
-    const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/auth/login`, {
+export const login = formData => request(
+    `/auth/login`,
+    {
         method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify(formData)
-    });
-    if (!response.ok) {
-        throw new Error('Failed to login');
+        body: formData
     }
-    return response.json();
-}
+);
 
-export const register = async (formData) => {
-    const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/auth/register`, {
+export const register = formData => request(
+    `/auth/register`,
+    {
         method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify(formData)
-    });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-        throw new Error(data.message || "Registration failed");
+        body: formData
     }
+);
 
-    return data;
-}
+export const refreshTokens = formData => request(
+    '/auth/refresh',
+    {
+        method: "POST",
+        body: formData
+    }
+)
