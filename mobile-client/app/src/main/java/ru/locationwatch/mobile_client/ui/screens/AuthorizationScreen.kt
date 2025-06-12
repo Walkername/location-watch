@@ -69,7 +69,7 @@ fun AuthorizationScreen(
     val viewModel: AuthViewModel = viewModel(factory = viewModelFactory)
 
     val accessToken = viewModel.getAccessToken()
-    val expirationTime = viewModel.getExpirationTime()
+    val expirationTime = viewModel.getAccessExpirationTime()
     val currentTime = Date().time
 
     if (accessToken != null) {

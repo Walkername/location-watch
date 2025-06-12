@@ -40,7 +40,7 @@ class PushNotificationService() : FirebaseMessagingService() {
         val jwtToken = tokenManager.getAccessToken()
 
         if (jwtToken != null) {
-            val expTime = tokenManager.getExpirationTime()
+            val expTime = tokenManager.getAccessExpirationTime()
             val currentTime = Date().time
 
             expTime?.let {
