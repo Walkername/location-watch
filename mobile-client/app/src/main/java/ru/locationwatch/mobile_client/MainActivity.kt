@@ -1,14 +1,12 @@
 package ru.locationwatch.mobile_client
 
 import android.Manifest
-import android.app.Application
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
-import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -21,10 +19,8 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.core.app.ActivityCompat
 import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -48,12 +44,10 @@ import ru.locationwatch.mobile_client.config.AppConfig
 import ru.locationwatch.mobile_client.network.NotificationManager
 import ru.locationwatch.mobile_client.network.TokenManager
 import ru.locationwatch.mobile_client.network.models.GPSDataRequest
-import ru.locationwatch.mobile_client.ui.AuthViewModel
-import ru.locationwatch.mobile_client.ui.RefreshUiState
 import ru.locationwatch.mobile_client.ui.theme.MobileclientTheme
 import ru.locationwatch.mobile_client.ui.screens.AuthorizationScreen
+import ru.locationwatch.mobile_client.ui.screens.LoadingScreen
 import ru.locationwatch.mobile_client.ui.screens.MainScreen
-import java.util.Date
 
 class MainActivity : ComponentActivity() {
 
@@ -135,61 +129,9 @@ class MainActivity : ComponentActivity() {
 
                     updateGPS()
 
-                    val app = LocalContext.current.applicationContext as Application
-                    val viewModelFactory = AuthViewModel.createFactory(app)
-                    val viewModel: AuthViewModel = viewModel(factory = viewModelFactory)
-
-                    val accessToken = viewModel.getAccessToken()
-                    val accessExpirationTime = viewModel.getAccessExpirationTime()
-                    val refreshToken = viewModel.getRefreshToken()
-                    val refreshExpirationTime = viewModel.getRefreshExpirationTime()
-                    val refreshUiState = viewModel.refreshUiState
-                    val currentTime = Date().time
-                    var authStatus = false
-
-                        if (accessToken != null) {
-                            accessExpirationTime?.let { accessExpTime ->
-                                if (accessExpTime * 1000 > currentTime) {
-                                    authStatus = true
-                                } else {
-                                    Log.e("token", "token is expired")
-                                    authStatus = false
-
-                                    // If refreshToken is also expired, then authStatus = false
-                                    if (refreshToken != null) {
-                                        refreshExpirationTime?.let { refreshExpTime ->
-                                            if (refreshExpTime * 1000 > currentTime) {
-                                                Log.e("refresh-token", "refresh token is valid")
-                                                // send request to refresh tokens
-                                                LaunchedEffect(Unit) {
-                                                    viewModel.refreshTokens(refreshToken)
-                                                }
-                                            } else { // refresh token is expired
-                                                authStatus = false
-                                                viewModel.resetTokens()
-                                                Log.e("refresh-token", "refresh token is expired")
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    when (refreshUiState) {
-                        is RefreshUiState.Loading -> {
-                        }
-                        is RefreshUiState.Success -> {
-                            Log.e("refresh tokens", "tokens were updated")
-                            authStatus = true
-                        }
-                        is RefreshUiState.Error -> {
-                            authStatus = false
-                        }
-                    }
-                    Log.e("auth-status", "status: $authStatus")
-
                     NavHost(
                         navController = navController,
-                        startDestination = if (authStatus) MainScreen else AuthorizationScreen
+                        startDestination = LoadingScreen
                     ) {
                         composable<MainScreen> {
                             MainScreen(
@@ -210,7 +152,14 @@ class MainActivity : ComponentActivity() {
                                 navigateToMain = { navController.navigate(MainScreen) }
                             )
                         }
+                        composable<LoadingScreen> {
+                            LoadingScreen(
+                                navigateToAuth = { navController.navigate(AuthorizationScreen) },
+                                navigateToMain = { navController.navigate(MainScreen) }
+                            )
+                        }
                     }
+
                 }
             }
         }

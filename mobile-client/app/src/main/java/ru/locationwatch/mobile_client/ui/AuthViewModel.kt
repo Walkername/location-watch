@@ -122,10 +122,10 @@ class AuthViewModel(
                 e.message?.let { Log.e("refresh tokens", it) }
                 RefreshUiState.Error("Network error")
             } catch (e: HttpException) {
-                Log.e("refresh tokens", e.message())
                 val errorBody = e.response()?.errorBody()?.string()
                 val errorResponse = parseError(errorBody)
                 if (errorResponse?.message != null) {
+                    Log.e("refresh tokens", errorResponse.message)
                     RefreshUiState.Error(errorResponse.message)
                 } else {
                     RefreshUiState.Error("Refresh tokens error")

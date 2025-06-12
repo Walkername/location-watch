@@ -7,3 +7,6 @@ object MainScreen
 
 @Serializable
 object AuthorizationScreen
+
+@Serializable
+object LoadingScreen
