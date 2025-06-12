@@ -196,6 +196,7 @@ fun SignUpForm(
 
             is RegisterUiState.Error -> {
                 errorMessage.value = uiState.message
+                viewModel.resetLoginState()
             }
         }
 
@@ -311,6 +312,7 @@ fun SignInForm(
 
             is LoginUiState.Error -> {
                 errorMessage.value = uiState.message
+                viewModel.resetLoginState()
             }
         }
 
