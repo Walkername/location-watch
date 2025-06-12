@@ -2,10 +2,11 @@ package ru.locationwatch.mobile_client.ui.screens
 
 import android.app.Application
 import android.util.Log
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.Text
+import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
@@ -13,9 +14,15 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.imageResource
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlinx.coroutines.delay
+import ru.locationwatch.mobile_client.R
 import ru.locationwatch.mobile_client.ui.AuthViewModel
 import ru.locationwatch.mobile_client.ui.RefreshUiState
 import java.util.Date
@@ -43,6 +50,7 @@ fun LoadingScreen(
             accessExpirationTime?.let { accessExpTime ->
                 if (accessExpTime * 1000 > currentTime) {
                     authStatus.value = true
+                    navigateToMain()
                 } else {
                     Log.e("token", "access token is expired")
                     authStatus.value = false
@@ -105,6 +113,31 @@ fun LoadingScreen(
             .background(Color.White),
         contentAlignment = Alignment.Center,
     ) {
-        Text("Loading...")
+        Image(
+            modifier = Modifier
+                .size(400.dp),
+            contentScale = ContentScale.Crop,
+            bitmap = ImageBitmap.imageResource(R.drawable.app_loading_logo),
+            contentDescription = "app_loading_logo"
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun LoadingPreview() {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.White),
+        contentAlignment = Alignment.Center,
+    ) {
+        Image(
+            modifier = Modifier
+                .size(400.dp),
+            contentScale = ContentScale.Crop,
+            bitmap = ImageBitmap.imageResource(R.drawable.app_loading_logo),
+            contentDescription = "app_loading_logo"
+        )
     }
 }
