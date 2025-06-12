@@ -32,6 +32,12 @@ sealed interface RegisterUiState {
     object Loading : RegisterUiState
 }
 
+sealed interface RefreshUiState {
+    object Success : RefreshUiState
+    data class Error(val message: String) : RefreshUiState
+    object Loading : RefreshUiState
+}
+
 class AuthViewModel(
     private val authRepository: AuthRepository,
     private val tokenManager: TokenManager
@@ -41,6 +47,9 @@ class AuthViewModel(
         private set
 
     var registerUiState: RegisterUiState by mutableStateOf(RegisterUiState.Loading)
+        private set
+
+    var refreshUiState: RefreshUiState by mutableStateOf(RefreshUiState.Loading)
         private set
 
     var userId by mutableStateOf<Int?>(null)
@@ -97,8 +106,40 @@ class AuthViewModel(
         }
     }
 
-    fun getExpirationTime(): Long? {
-        return tokenManager.getExpirationTime()
+    fun refreshTokens(refreshToken: String) {
+        viewModelScope.launch {
+            refreshUiState = RefreshUiState.Loading
+            refreshUiState = try {
+                val response = authRepository.refresh(refreshToken)
+                response.accessToken?.let { access ->
+                    response.refreshToken?.let { refresh ->
+                        tokenManager.saveTokens(access, refresh)
+                    }
+                }
+                updateUserId()
+                RefreshUiState.Success
+            } catch (e: IOException) {
+                e.message?.let { Log.e("refresh tokens", it) }
+                RefreshUiState.Error("Network error")
+            } catch (e: HttpException) {
+                Log.e("refresh tokens", e.message())
+                val errorBody = e.response()?.errorBody()?.string()
+                val errorResponse = parseError(errorBody)
+                if (errorResponse?.message != null) {
+                    RefreshUiState.Error(errorResponse.message)
+                } else {
+                    RefreshUiState.Error("Refresh tokens error")
+                }
+            }
+        }
+    }
+
+    fun getAccessExpirationTime(): Long? {
+        return tokenManager.getAccessExpirationTime()
+    }
+
+    fun getRefreshExpirationTime(): Long? {
+        return tokenManager.getRefreshExpirationTime()
     }
 
     fun resetTokens() {
@@ -107,6 +148,10 @@ class AuthViewModel(
 
     fun getAccessToken(): String? {
         return tokenManager.getAccessToken()
+    }
+
+    fun getRefreshToken(): String? {
+        return tokenManager.getRefreshToken()
     }
 
     fun loadUserId() {

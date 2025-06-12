@@ -41,11 +41,32 @@ class TokenManager(context: Context) {
         }
     }
 
-    fun getExpirationTime(): Long? {
+    fun getAccessExpirationTime(): Long? {
         val accessToken = getAccessToken() ?: return null
         return try {
             // Split JWT into parts
             val parts = accessToken.split(".")
+            if (parts.size != 3) return null
+
+            // Decode payload
+            val payload = Base64.decode(
+                parts[1],
+                Base64.URL_SAFE or Base64.NO_PADDING
+            ).toString(StandardCharsets.UTF_8)
+
+            // Parse JSON and extract user ID (adjust claim name if needed)
+            val claims = Gson().fromJson(payload, Map::class.java)
+            (claims["exp"] as? Double)?.toLong()
+        } catch (e: Exception) {
+            null
+        }
+    }
+
+    fun getRefreshExpirationTime(): Long? {
+        val refreshToken = getRefreshToken() ?: return null
+        return try {
+            // Split JWT into parts
+            val parts = refreshToken.split(".")
             if (parts.size != 3) return null
 
             // Decode payload

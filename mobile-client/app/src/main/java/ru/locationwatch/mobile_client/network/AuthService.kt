@@ -5,6 +5,7 @@ import retrofit2.http.Body
 import retrofit2.http.POST
 import ru.locationwatch.mobile_client.network.models.AuthRequest
 import ru.locationwatch.mobile_client.network.models.JWTResponse
+import ru.locationwatch.mobile_client.network.models.RefreshTokenRequest
 
 interface AuthService {
 
@@ -17,5 +18,10 @@ interface AuthService {
     suspend fun register(
         @Body authRequest: AuthRequest
     ): Response<Unit>
+
+    @POST("/auth/refresh")
+    suspend fun refresh(
+        @Body refreshToken: RefreshTokenRequest
+    ): Response<JWTResponse>
 
 }

@@ -49,6 +49,7 @@ import ru.locationwatch.mobile_client.network.NotificationManager
 import ru.locationwatch.mobile_client.network.TokenManager
 import ru.locationwatch.mobile_client.network.models.GPSDataRequest
 import ru.locationwatch.mobile_client.ui.AuthViewModel
+import ru.locationwatch.mobile_client.ui.RefreshUiState
 import ru.locationwatch.mobile_client.ui.theme.MobileclientTheme
 import ru.locationwatch.mobile_client.ui.screens.AuthorizationScreen
 import ru.locationwatch.mobile_client.ui.screens.MainScreen
@@ -86,7 +87,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         appConfig = AppConfig(applicationContext)
 
-        handleIntent(intent) // Check initial intent
+        handleIntent(intent)
 
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this)
 
@@ -139,19 +140,49 @@ class MainActivity : ComponentActivity() {
                     val viewModel: AuthViewModel = viewModel(factory = viewModelFactory)
 
                     val accessToken = viewModel.getAccessToken()
-                    val expirationTime = viewModel.getExpirationTime()
+                    val accessExpirationTime = viewModel.getAccessExpirationTime()
+                    val refreshToken = viewModel.getRefreshToken()
+                    val refreshExpirationTime = viewModel.getRefreshExpirationTime()
+                    val refreshUiState = viewModel.refreshUiState
                     val currentTime = Date().time
                     var authStatus = false
 
-                    if (accessToken != null) {
-                        expirationTime?.let {
-                            if (it * 1000 > currentTime) {
-                                authStatus = true
-                            } else {
-                                Log.e("token", "token is expired")
-                                authStatus = false
-                                viewModel.resetTokens()
+                        if (accessToken != null) {
+                            accessExpirationTime?.let { accessExpTime ->
+                                if (accessExpTime * 1000 > currentTime) {
+                                    authStatus = true
+                                } else {
+                                    Log.e("token", "token is expired")
+                                    authStatus = false
+
+                                    // If refreshToken is also expired, then authStatus = false
+                                    if (refreshToken != null) {
+                                        refreshExpirationTime?.let { refreshExpTime ->
+                                            if (refreshExpTime * 1000 > currentTime) {
+                                                Log.e("refresh-token", "refresh token is valid")
+                                                // send request to refresh tokens
+                                                LaunchedEffect(Unit) {
+                                                    viewModel.refreshTokens(refreshToken)
+                                                }
+                                            } else { // refresh token is expired
+                                                authStatus = false
+                                                viewModel.resetTokens()
+                                                Log.e("refresh-token", "refresh token is expired")
+                                            }
+                                        }
+                                    }
+                                }
                             }
+                        }
+                    when (refreshUiState) {
+                        is RefreshUiState.Loading -> {
+                        }
+                        is RefreshUiState.Success -> {
+                            Log.e("refresh tokens", "tokens were updated")
+                            authStatus = true
+                        }
+                        is RefreshUiState.Error -> {
+                            authStatus = false
                         }
                     }
                     Log.e("auth-status", "status: $authStatus")
