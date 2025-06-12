@@ -30,6 +30,12 @@ Depending on this, it sends a corresponding notification to the user and a messa
 
 **The home page** contains a navigation map, which displays all restricted areas. As well as a button, which, when pressed, starts transmitting GPS data to the backend.
 
+By clicking on an area you can view its short description:
+- Area name
+- Type: speed/location limit
+- Maximum speed: 0 for location area
+- Short description
+
 <img src="https://github.com/user-attachments/assets/16f69931-36a0-4af0-9134-52ad26fcc5a8" alt="areas" width="200"/>
 <img src="https://github.com/user-attachments/assets/99f7701e-1c3e-4912-a81b-fcb87821ca9f" alt="zone-information" width="200"/>
 <img src="https://github.com/user-attachments/assets/4f37ac5f-dbbc-4ee3-ab94-8fc055cba3be" alt="register-page" width="200"/>
