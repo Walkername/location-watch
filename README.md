@@ -13,3 +13,32 @@ This development provides a "template" for creating a vehicle rental system with
 The main idea is to check GPS data to see if the user is in any prohibited areas.
 Depending on this, it sends a corresponding notification to the user and a message to the administrator interface.
 - **The frontend** provides an interface for administrators. There, violators are displayed in real time.
+
+# Mobile Client
+
+**The mobile client** is a two-page application:
+- Login and registration pages
+- Home page
+
+## Authentication Screens
+
+<img src="https://github.com/user-attachments/assets/f1ec89b6-0d0c-42e2-a5b8-13df22e5c23e" alt="login-page" width="300"/>
+<img src="https://github.com/user-attachments/assets/4fdedd02-575c-4a0c-b499-cdfc4f991a23" alt="login-page-error" width="300"/>
+<img src="https://github.com/user-attachments/assets/3e252530-8e0b-440f-a07e-53ffa8bff278" alt="register-page" width="300"/>
+
+## Home Screen
+
+**The home page** contains a navigation map, which displays all restricted areas. As well as a button, which, when pressed, starts transmitting GPS data to the backend.
+
+<img src="https://github.com/user-attachments/assets/16f69931-36a0-4af0-9134-52ad26fcc5a8" alt="areas" width="300"/>
+<img src="https://github.com/user-attachments/assets/99f7701e-1c3e-4912-a81b-fcb87821ca9f" alt="zone-information" width="300"/>
+<img src="https://github.com/user-attachments/assets/4f37ac5f-dbbc-4ee3-ab94-8fc055cba3be" alt="register-page" width="300"/>
+
+## Notifications
+
+Also, when a user is in a zone and violates its conditions, he receives a corresponding notification. Notifications are implemented using **Firebase Cloud Messaging**.
+
+<img src="https://github.com/user-attachments/assets/7a0b4ea2-747c-4573-a6ed-ae3d6463983d" alt="register-page" width="300"/>
+
+
+
