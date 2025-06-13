@@ -14,6 +14,9 @@ The main idea is to check GPS data to see if the user is in any prohibited areas
 Depending on this, it sends a corresponding notification to the user and a message to the administrator interface.
 - **The frontend** provides an interface for administrators. There, violators are displayed in real time.
 
+
+<img src="https://github.com/user-attachments/assets/6d634dcc-f33b-46ca-b9fb-db858c3c81c0" alt="login-page" width="650"/>
+
 # Mobile Client
 
 **The mobile client** is a two-page application:
