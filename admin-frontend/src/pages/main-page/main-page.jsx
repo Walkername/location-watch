@@ -9,6 +9,7 @@ import NavigationBar from "../../components/navigation-bar/navigation-bar";
 
 
 function MainPage() {
+    const [popupZoneId, setPopupZoneId] = useState(null);
 
     const spbPosition = [59.937500, 30.308611];
 
@@ -18,7 +19,7 @@ function MainPage() {
 
     const handleMapClick = (latlng) => {
         setPositions([...positions, [latlng.lat, latlng.lng]]);
-        console.log(positions);
+        // console.log(positions);
     };
 
     // Component to handle map click events
@@ -148,9 +149,7 @@ function MainPage() {
     return (
         <>
             <NavigationBar title="Admin Interface" />
-
-            <div className="page-content-container">
-                <div className="page-content">
+                <div className="container">
                     <MapContainer center={spbPosition} zoom={11}>
                         <TileLayer
                             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
@@ -209,6 +208,8 @@ function MainPage() {
                             zones={zones}
                             getZoneColor={getZoneColor}
                             handleDelete={handleDelete}
+                            popupZoneId={popupZoneId}
+                            setPopupZoneId={setPopupZoneId}
                         />
                     </MapContainer>
 
@@ -220,9 +221,9 @@ function MainPage() {
                         setTypeName={setTypeName}
                         zones={zones}
                         violations={violations}
+                        setPopupZoneId={setPopupZoneId}
                     />
                 </div>
-            </div>
         </>
     );
 }
