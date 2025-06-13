@@ -54,41 +54,53 @@ function CreateZoneForm({ positions, setPositions, setZones, typeName, setTypeNa
     };
 
     return (
-        <form method="POST" onSubmit={handleCreateZone}>
-            <label>Type zone name (unique):</label>
-            <br />
-            <input
-                type="text"
-                name="zoneName"
-                onChange={handleZoneName}
-            />
-            <br /><br />
+        <form method="POST" onSubmit={handleCreateZone} className="form-section" >
+            <h2>Create Zone</h2>
 
-            <label>Choose zone type:</label>
-            <br />
-            <input
-                type="radio"
-                id="no_speed"
-                value="NO_SPEED"
-                name="typeName"
-                checked={typeName === "NO_SPEED"}
-                onChange={handleTypeChange}
-            />
-            <label htmlFor="no_speed">NO SPEED</label>
-            <br />
-            <input
-                type="radio"
-                id="less_speed"
-                value="LESS_SPEED"
-                name="typeName"
-                checked={typeName === "LESS_SPEED"}
-                onChange={handleTypeChange}
-            />
-            <label htmlFor="less_speed">LESS SPEED</label>
-            <br />
+            <div className="form-group">
+                <label>Zone Name (unique)</label>
+                <input
+                    type="text"
+                    placeholder="Enter name"
+                    onChange={handleZoneName}
+                />
+            </div>
+
+            <div className="form-group">
+                <label>Zone Type</label>
+                <select onChange={handleTypeChange}>
+                    <option value="NO_SPEED">No speed</option>
+                    <option value="LESS_SPEED">Less Speed</option>
+                </select>
+            </div>
+
+            {
+                typeName === "LESS_SPEED" && (
+                    <div className="form-group" id="speedGroup">
+                        <label for="maxSpeed">Max Speed (km/h): 0..20</label>
+                        <input
+                            type="text"
+                            value={speed}
+                            placeholder="Enter max speed"
+                            onChange={handleSpeedChange}
+                            min="0"
+                            max="20"
+                        />
+                    </div>
+                )
+            }
+
+            <div className="form-actions">
+                <button onClick={
+                    (e) => {
+                        e.preventDefault();
+                        setPositions([]);
+                    }} className="btn btn-secondary">Clear</button>
+                <button type="submit" className="btn btn-primary">Create</button>
+            </div>
 
             {/* Conditionally render speed input */}
-            {typeName === "LESS_SPEED" && (
+            {/* {typeName === "LESS_SPEED" && (
                 <>
                     <label>Speed limit (0-20 km/h):</label>
                     <br />
@@ -104,7 +116,7 @@ function CreateZoneForm({ positions, setPositions, setZones, typeName, setTypeNa
                 </>
             )}
 
-            <input type="submit" value="Create" />
+            <input type="submit" value="Create" /> */}
         </form>
     );
 }

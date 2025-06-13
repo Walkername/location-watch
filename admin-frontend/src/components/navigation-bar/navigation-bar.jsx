@@ -9,7 +9,7 @@ function NavigationBar({ title }) {
     }
 
     return (
-        <nav className="nav-bar">
+        <header>
             <h1>{title}</h1>
             <button
                 className="exit-button"
@@ -17,7 +17,7 @@ function NavigationBar({ title }) {
             >
                 Log out
             </button>
-        </nav>
+        </header>
     )
 }
 
