@@ -16,7 +16,7 @@ Depending on this, it sends a corresponding notification to the user and a messa
 - **The frontend** provides an interface for administrators. There, violators are displayed in real time.
 
 <p align="center">
-  <img src="https://github.com/user-attachments/assets/6d634dcc-f33b-46ca-b9fb-db858c3c81c0" alt="login-page" width="650"/>
+  <img src="https://github.com/user-attachments/assets/046f4146-df6b-4711-b303-4fad0c776911" alt="architecture" width="650"/>
 </p>
 
 # Mobile Client
@@ -44,8 +44,8 @@ By clicking on an area you can view its short description:
 
 <p align="center">
   <img src="https://github.com/user-attachments/assets/16f69931-36a0-4af0-9134-52ad26fcc5a8" alt="areas" width="200"/>
-  <img src="https://github.com/user-attachments/assets/99f7701e-1c3e-4912-a81b-fcb87821ca9f" alt="zone-information" width="200"/>
-  <img src="https://github.com/user-attachments/assets/4f37ac5f-dbbc-4ee3-ab94-8fc055cba3be" alt="register-page" width="200"/>
+  <img src="https://github.com/user-attachments/assets/99f7701e-1c3e-4912-a81b-fcb87821ca9f" alt="zone-information-1" width="200"/>
+  <img src="https://github.com/user-attachments/assets/4f37ac5f-dbbc-4ee3-ab94-8fc055cba3be" alt="zone-information-2" width="200"/>
 </p>
 
 ## Notifications
@@ -53,5 +53,5 @@ By clicking on an area you can view its short description:
 Also, when a user is in a zone and violates its conditions, he receives a corresponding notification. Notifications are implemented using **Firebase Cloud Messaging**.
 
 <p align="center">
-  <img src="https://github.com/user-attachments/assets/7a0b4ea2-747c-4573-a6ed-ae3d6463983d" alt="register-page" width="200"/>
+  <img src="https://github.com/user-attachments/assets/7a0b4ea2-747c-4573-a6ed-ae3d6463983d" alt="notification" width="200"/>
 </p>
