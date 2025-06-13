@@ -13,14 +13,21 @@ function ZoneList({ zones, onZoneClick }) {
                         <div className="zone-header">
                             <div className="zone-title">{zone.title}</div>
                             <div className={`zone-badge ${zone.typeName === 'NO_SPEED' ? 'badge-no' :
-                                    zone.typeName === 'LESS_SPEED' ? 'badge-less' : ''
+                                zone.typeName === 'LESS_SPEED' ? 'badge-less' : ''
                                 }`}>
                                 {zone.typeName}
                             </div>
                         </div>
                         <div className="zone-details">
-                            <span><strong>Max Speed:</strong> {zone.speed} km/h</span>
+                            {
+                                zone.typeName === "LESS_SPEED" ? (
+                                    <span><strong>Max Speed:</strong> {zone.speed} km/h</span>
+                                ) 
+                                : <span>It is prohibited to be in this area</span>
+                            }
+
                         </div>
+
                     </div>
                 ))}
             </div>
