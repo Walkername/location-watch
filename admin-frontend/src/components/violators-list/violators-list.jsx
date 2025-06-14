@@ -29,61 +29,6 @@ function ViolatorsList({ violations }) {
                                 </div>
                             ))
                         }
-
-                        <div className="violation-card">
-                            <div className="violation-header">
-                                <div className="violation-id">Test User</div>
-                                <div className="violation-time">01.02.2002, 14:36:03</div>
-                            </div>
-                            <div className="violation-body">
-                                <span><strong>Zones:</strong> Zone A, Zone B</span>
-                                <span><strong>Speed:</strong> 75 km/h</span>
-                            </div>
-                        </div>
-
-                        <div className="violation-card">
-                            <div className="violation-header">
-                                <div className="violation-id">Test User</div>
-                                <div className="violation-time">01.02.2002, 14:36:03</div>
-                            </div>
-                            <div className="violation-body">
-                                <span><strong>Zones:</strong> Zone A, Zone B</span>
-                                <span><strong>Speed:</strong> 75 km/h</span>
-                            </div>
-                        </div>
-
-                        <div className="violation-card">
-                            <div className="violation-header">
-                                <div className="violation-id">Test User</div>
-                                <div className="violation-time">01.02.2002, 14:36:03</div>
-                            </div>
-                            <div className="violation-body">
-                                <span><strong>Zones:</strong> Zone A, Zone B</span>
-                                <span><strong>Speed:</strong> 75 km/h</span>
-                            </div>
-                        </div>
-
-                        <div className="violation-card">
-                            <div className="violation-header">
-                                <div className="violation-id">Test User</div>
-                                <div className="violation-time">01.02.2002, 14:36:03</div>
-                            </div>
-                            <div className="violation-body">
-                                <span><strong>Zones:</strong> Zone A, Zone B</span>
-                                <span><strong>Speed:</strong> 75 km/h</span>
-                            </div>
-                        </div>
-
-                        <div className="violation-card">
-                            <div className="violation-header">
-                                <div className="violation-id">Test User</div>
-                                <div className="violation-time">01.02.2002, 14:36:03</div>
-                            </div>
-                            <div className="violation-body">
-                                <span><strong>Zones:</strong> Zone A, Zone B</span>
-                                <span><strong>Speed:</strong> 75 km/h</span>
-                            </div>
-                        </div>
                     </div>
                 </div>
             </ul>
