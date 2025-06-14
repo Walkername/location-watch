@@ -44,8 +44,8 @@ function MainPage() {
                     <div style="
                         background-color: ${getZoneColor(type)};
                         border-radius: 50%;
-                        width: 24px;
-                        height: 24px;
+                        width: 30px;
+                        height: 30px;
                         display: flex;
                         align-items: center;
                         justify-content: center;
@@ -56,7 +56,7 @@ function MainPage() {
                         ${number}
                     </div>
                 `,
-            iconSize: [24, 24]
+            iconSize: [30, 30]
         });
     };
 
@@ -149,81 +149,85 @@ function MainPage() {
     return (
         <>
             <NavigationBar title="Admin Interface" />
-                <div className="container">
-                    <MapContainer center={spbPosition} zoom={11}>
-                        <TileLayer
-                            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                        />
-                        <MapClickHandler />
+            <div className="container">
+                <MapContainer center={spbPosition} zoom={11}>
+                    <TileLayer
+                        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                    />
+                    <MapClickHandler />
 
-                        {/* Render markers */}
-                        {positions.map((position, index) => (
+                    {/* Render markers */}
+                    {positions.map((position, index) => (
+                        <Marker
+                            key={`marker-${position[0]}-${position[1]}-${index}`}
+                            position={position}
+                            icon={createNumberedIcon(index + 1, typeName)}
+                        >
+                            <Popup>
+                                Point {index + 1}<br />
+                                Lat: {position[0].toFixed(6)}<br />
+                                Lng: {position[1].toFixed(6)}
+                            </Popup>
+                        </Marker>
+                    ))}
+
+
+                    {
+                        Array.from(violations.entries()).map(([key, value], index) => (
                             <Marker
-                                key={`marker-${position[0]}-${position[1]}-${index}`}
-                                position={position}
-                                icon={createNumberedIcon(index + 1, typeName)}
+                                key={`marker-${key}`}
+                                position={[value.latitude, value.longitude]}
+                                icon={createNumberedIcon(`U${key}`)}
                             >
                                 <Popup>
-                                    Point {index + 1}<br />
-                                    Lat: {position[0].toFixed(6)}<br />
-                                    Lng: {position[1].toFixed(6)}
+                                    <b>User#{key}</b>
                                 </Popup>
                             </Marker>
-                        ))}
+                        ))
+                    }
 
-
-                        {
-                            Array.from(violations.entries()).map(([key, value], index) => (
-                                <Marker
-                                    key={`marker-${key}`}
-                                    position={[value.latitude, value.longitude]}
-                                    icon={createNumberedIcon(`U${key}`)}
-                                ></Marker>
-                            ))
-                        }
-
-                        {/* Render connecting lines */}
-                        {positions.length >= 2 && (
-                            <Polyline
-                                key={`polyline-${typeName}`}
-                                positions={polylinePositions}
-                                color={getZoneColor(typeName)}
-                            />
-                        )}
-
-                        {/* Render semi-transparent polygon when 3+ markers exist */}
-                        {positions.length >= 3 && (
-                            <Polygon
-                                positions={polylinePositions}
-                                pathOptions={{
-                                    fillColor: getZoneColor(typeName),
-                                    color: 'transparent'
-                                }}
-                            />
-                        )}
-
-                        {/* Display existing zones as polygons */}
-                        <MapZones
-                            zones={zones}
-                            getZoneColor={getZoneColor}
-                            handleDelete={handleDelete}
-                            popupZoneId={popupZoneId}
-                            setPopupZoneId={setPopupZoneId}
+                    {/* Render connecting lines */}
+                    {positions.length >= 2 && (
+                        <Polyline
+                            key={`polyline-${typeName}`}
+                            positions={polylinePositions}
+                            color={getZoneColor(typeName)}
                         />
-                    </MapContainer>
+                    )}
 
-                    <FunctionBar
-                        positions={positions}
-                        setPositions={setPositions}
-                        setZones={setZones}
-                        typeName={typeName}
-                        setTypeName={setTypeName}
+                    {/* Render semi-transparent polygon when 3+ markers exist */}
+                    {positions.length >= 3 && (
+                        <Polygon
+                            positions={polylinePositions}
+                            pathOptions={{
+                                fillColor: getZoneColor(typeName),
+                                color: 'transparent'
+                            }}
+                        />
+                    )}
+
+                    {/* Display existing zones as polygons */}
+                    <MapZones
                         zones={zones}
-                        violations={violations}
+                        getZoneColor={getZoneColor}
+                        handleDelete={handleDelete}
+                        popupZoneId={popupZoneId}
                         setPopupZoneId={setPopupZoneId}
                     />
-                </div>
+                </MapContainer>
+
+                <FunctionBar
+                    positions={positions}
+                    setPositions={setPositions}
+                    setZones={setZones}
+                    typeName={typeName}
+                    setTypeName={setTypeName}
+                    zones={zones}
+                    violations={violations}
+                    setPopupZoneId={setPopupZoneId}
+                />
+            </div>
         </>
     );
 }
