@@ -2,8 +2,15 @@
 
 1. [What is this about](#what-is-this-about)
 2. [Structure](#structure)
-3. [Mobile Client](#mobile-client)
-4. [Admin Interface](#admin-interface)
+3. [Mobile Client](#mobile-client)  
+   3.1. [Authentication](#authentication-screens)  
+   3.2. [Home Screen](#home-screen)  
+   3.3. [Notifications](#notifications)  
+4. [Admin Interface](#admin-interface)  
+   4.1. [Login Page](#login-page)  
+   4.2. [Zones](#zones)  
+   4.3. [Zone Creating](#zone-creating)  
+   4.4. [Violators List](#violators-list)  
 
 # What is this about
 
@@ -11,7 +18,6 @@ This development provides a "template" for creating a vehicle rental system with
 <p align="center">
   <img src="https://github.com/user-attachments/assets/778a91b0-e2b2-4bbc-8325-ea2cc327eba7" alt="logo_slogan" width="550" />
 </p>
-
 
 # Structure
 
