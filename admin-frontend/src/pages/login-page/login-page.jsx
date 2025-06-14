@@ -33,35 +33,40 @@ function LoginPage() {
     }
 
     return (
-        <>
-            <h1>Login</h1>
-
-            <div className="page-content-container">
-                <div className="page-content">
-                    <form method="POST" onSubmit={handleSubmit} >
-                        <label>Username:</label>
-                        <br></br>
-                        <input name="username" type="text" min="5" max="20" value={formData.title} onChange={handleChange} required />
-                        <br></br>
-
-                        <label>Password:</label>
-                        <br></br>
-                        <input name="password" type="password" min="5" value={formData.title} onChange={handleChange} required />
-                        <br></br>
-                        {
-                            errorMessage
-                                ? <>
-                                    <span style={{ color: "red" }}>{errorMessage}</span>
-                                    <br></br>
-                                </>
-                                : <></>
-                        }
-
-                        <input type="submit" value="Login" />
-                    </form>
+        <div className="login-container">
+            <h1 className="login-title">Login</h1>
+            <form className="login-form" method="POST" onSubmit={handleSubmit}>
+                <div className="form-group">
+                    <label htmlFor="username">Username</label>
+                    <input
+                        id="username"
+                        name="username"
+                        type="text"
+                        minLength="5"
+                        maxLength="20"
+                        value={formData.username}
+                        onChange={handleChange}
+                        required
+                    />
                 </div>
-            </div>
-        </>
+                <div className="form-group">
+                    <label htmlFor="password">Password</label>
+                    <input
+                        id="password"
+                        name="password"
+                        type="password"
+                        minLength="5"
+                        value={formData.password}
+                        onChange={handleChange}
+                        required
+                    />
+                </div>
+                {errorMessage && <div className="error-message">{errorMessage}</div>}
+                <button type="submit" className="btn btn-primary login-btn">
+                    Login
+                </button>
+            </form>
+        </div>
     );
 }
 
