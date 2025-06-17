@@ -33,6 +33,19 @@ Depending on this, it sends a corresponding notification to the user and a messa
   <img src="https://github.com/user-attachments/assets/046f4146-df6b-4711-b303-4fad0c776911" alt="architecture" width="650"/>
 </p>
 
+# Backend
+
+The backend is a monolithic **Spring Boot** application that processes data from mobile clients, checks whether users are in specified zones, and sends appropriate notifications.
+
+- Authentication and authorization (JWT + Refresh Token)
+- Receiving GPS data via MQTT (Yandex IoT Core)
+- Zone checking (PostgreSQL + geodata)
+- Real-time Notifications (WebSocket for admin panel, FCM for mobile clients)
+
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/6e3d1b65-42e4-45bb-a469-42c2d648a600" alt="architecture" width="1000"/>
+</p>
+
 # Mobile Client
 
 **The mobile client** is a two-page application:
