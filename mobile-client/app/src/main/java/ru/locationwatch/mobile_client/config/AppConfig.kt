@@ -15,4 +15,6 @@ class AppConfig(private val context: Context) {
     val userId: String get() = properties.getProperty("mqtt.user.id")
     val userPassword: String get() = properties.getProperty("mqtt.user.password")
 
+    val backendUrl: String get() = properties.getProperty("backend.url")
+
 }

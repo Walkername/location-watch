@@ -1,0 +1,7 @@
+# Mqtt properties
+mqtt.server.uri=
+mqtt.user.id=
+mqtt.user.password=
+
+# Backend URL
+backend.url=

@@ -9,6 +9,7 @@ import okhttp3.Response
 import okhttp3.Route
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import ru.locationwatch.mobile_client.config.AppConfig
 import ru.locationwatch.mobile_client.network.AuthService
 import ru.locationwatch.mobile_client.network.FCMTokenManager
 import ru.locationwatch.mobile_client.network.NotificationService
@@ -33,7 +34,7 @@ interface AppContainer {
 }
 
 class DefaultAppContainer(private val context: Context) : AppContainer {
-    private val BASE_URL = "http://192.168.0.20:8080/"
+    private val BASE_URL = AppConfig(context).backendUrl
 
     private val PUBLIC_URLS = listOf(
         "/auth/refresh"
